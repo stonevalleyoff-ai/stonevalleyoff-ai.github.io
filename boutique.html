@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Boutique · StoneValley</title>
+<meta name="description" content="La boutique StoneValley : les jeux, leurs contenus et les abonnements.">
+<meta name="theme-color" content="#090b10">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="images/icones/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="StoneValley">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header id="entete"></header>
+<main id="contenu">
+  <section class="section" style="padding-bottom:0">
+    <div class="cadre">
+      <div class="bandeau" id="retour-paiement" hidden role="status"><h2 id="retour-titre" style="font-size:1.4rem"></h2><p id="retour-texte"></p></div>
+      <div class="tete">
+        <span class="surtitre">La boutique</span>
+        <h1>Jeux, contenus et abonnements</h1>
+        <p>Les prix sont en euros, toutes taxes comprises. Ce que tu achètes est attaché à ton compte StoneValley, et se retrouve dans ta bibliothèque.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="abonnements" aria-labelledby="t-abos" style="padding-bottom:0">
+    <div class="cadre">
+      <h2 id="t-abos">Abonnements</h2>
+      <div id="abos"><p class="vide">Un instant…</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="catalogue" aria-labelledby="t-cat">
+    <div class="cadre">
+      <h2 id="t-cat">Jeux et contenus</h2>
+      <div id="produits"><p class="vide">Un instant…</p></div>
+      <p class="aide">Paiement sécurisé par notre prestataire : StoneValley ne voit ni ne garde tes cartes. Tu as 14 jours pour te rétracter, sauf si tu demandes l'accès immédiat à un contenu numérique. Tout est dit dans les <a href="legal/cgv.html">conditions de vente</a>.</p>
+    </div>
+  </section>
+</main>
+<footer id="pied"></footer>
+
+<!-- la caisse : ce qu'on commande, son prix, ce qu'on accepte ; le paiement lui-même se fait chez le prestataire -->
+<dialog class="caisse" id="caisse" aria-labelledby="caisse-titre">
+  <form id="f-caisse" novalidate>
+    <h2 id="caisse-titre" style="font-size:1.5rem">Ta commande</h2>
+    <div class="ligne"><span id="caisse-nom"></span><strong id="caisse-prix"></strong></div>
+    <p class="sourd" id="caisse-detail"></p>
+    <label class="case"><input id="caisse-acces" type="checkbox" required><span id="caisse-acces-texte"></span></label>
+    <label class="case"><input id="caisse-cgv" type="checkbox" required><span>J'accepte les <a href="legal/cgv.html" target="_blank" rel="noopener">conditions générales de vente</a>.</span></label>
+    <p class="avis" id="caisse-avis" role="status"></p>
+    <div class="gestes"><button type="button" class="bouton calme" id="caisse-non">Annuler</button><button type="submit" class="bouton" id="caisse-oui">Commander et payer</button></div>
+    <p class="aide">Commande avec obligation de paiement. Tu seras conduit sur la page sécurisée de notre prestataire de paiement.</p>
+  </form>
+</dialog>
+
+<script src="assets/editeur.js"></script>
+<script src="assets/jeux.js"></script>
+<script src="assets/site.js"></script>
+<script>
+// La boutique : le catalogue vient de la table sv_produits (supabase.sql), lue avec la clé publique. Tant qu'elle n'existe pas, ou
+// qu'elle est vide, la page le dit : tous les jeux sont gratuits. La commande passe par la fonction « sv-paiement » (LISEZ-MOI.md).
+(function () {
+  'use strict';
+  if (!window.SV) return;
+  var SV = window.SV, h = SV.h, $ = SV.$;
+  var PRODUITS = [], ESPACE = { achats: [], abonnement: null }, choisi = null;
+  var PERIODES = { mois: '/ mois', an: '/ an' };
+
+  // --- de retour de la page de paiement ---
+  var retour = new URLSearchParams(location.search).get('paiement');
+  if (retour) {
+    history.replaceState(null, '', location.pathname);
+    $('retour-titre').textContent = retour === 'ok' ? 'Merci pour ta commande' : 'Commande annulée';
+    $('retour-texte').textContent = retour === 'ok' ? 'Ton paiement est enregistré. Ton achat arrive dans ta bibliothèque dans la minute, et un e-mail te le confirme.' : 'Rien n\'a été prélevé.';
+    $('retour-paiement').hidden = false;
+  }
+
+  function possede(p) { return ESPACE.achats.some(function (a) { return a.produit === p.id && a.etat === 'paye'; }); }
+  function abonne(p) { var a = ESPACE.abonnement; return !!a && a.produit === p.id && a.etat !== 'termine'; }
+  function offre(p) {
+    var j = p.jeu && SV.jeu(p.jeu), abo = p.genre === 'abonnement', a = ESPACE.abonnement, autre = abo && a && a.etat !== 'termine' && !abonne(p);
+    var geste = possede(p) ? '<a class="bouton calme" href="compte.html#bibliotheque">Dans ta bibliothèque</a>'
+      : abonne(p) ? '<a class="bouton calme" href="compte.html#abonnement">Gérer mon abonnement</a>'
+      : autre ? '<a class="bouton calme" href="compte.html#abonnement">Tu as déjà un abonnement</a>'
+      : '<button type="button" class="bouton" data-produit="' + h(p.id) + '">' + (abo ? 'S\'abonner' : 'Acheter') + '</button>';
+    return '<li><article class="offre' + (p.en_avant ? ' forte' : '') + '">' + (j ? '<img src="' + h(j.couverture) + '" alt="" loading="lazy" onerror="this.remove()">' : '')
+      + '<div class="corps">' + (j ? '<span class="surtitre">' + h(j.nom) + '</span>' : '') + '<h3>' + h(p.nom) + '</h3><p>' + h(p.resume || '') + '</p>'
+      + '<div class="prix">' + h(SV.euros(p.prix_centimes, p.devise)) + (abo ? ' <small>' + h(PERIODES[p.periode] || '') + '</small>' : '') + '</div>'
+      + (abo ? '<span class="aide">Sans engagement : résiliable à tout moment depuis ton compte.</span>' : '') + geste + '</div></article></li>';
+  }
+  function gratuits() {
+    return '<ul class="offres">' + window.SV_JEUX.filter(function (j) { return j.genre === 'jeu'; }).map(function (j) {
+      return '<li><article class="offre"><img src="' + h(j.couverture) + '" alt="" loading="lazy" onerror="this.remove()"><div class="corps"><span class="surtitre">' + h(j.categorie) + '</span><h3>' + h(j.nom) + '</h3><p>' + h(j.accroche) + '</p>'
+        + '<div class="prix">Gratuit</div><a class="bouton" href="' + h(j.lien) + '">Jouer</a></div></article></li>';
+    }).join('') + '</ul>';
+  }
+  function dessiner() {
+    var abos = PRODUITS.filter(function (p) { return p.genre === 'abonnement'; }), autres = PRODUITS.filter(function (p) { return p.genre !== 'abonnement'; });
+    $('abos').innerHTML = abos.length ? '<ul class="offres">' + abos.map(offre).join('') + '</ul>'
+      : '<p class="vide">Aucune formule d\'abonnement pour l\'instant. Quand il y en aura une, elle sera ici, et tu la géreras depuis <a href="compte.html#abonnement">ton compte</a>.</p>';
+    $('produits').innerHTML = (autres.length ? '<ul class="offres" style="margin-bottom:1.4rem">' + autres.map(offre).join('') + '</ul>' : '<p class="sourd" style="margin-bottom:1.2rem">Rien n\'est à vendre pour l\'instant : tous nos jeux se jouent gratuitement.</p>') + gratuits();
+  }
+
+  // --- la caisse ---
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-produit]');
+    if (!b) return;
+    if (!SV.session()) { location.href = 'compte.html'; return; }                    // (un achat s'attache à un compte)
+    choisi = PRODUITS.filter(function (p) { return p.id === b.getAttribute('data-produit'); })[0];
+    if (!choisi) return;
+    var abo = choisi.genre === 'abonnement';
+    $('caisse-nom').textContent = choisi.nom;
+    $('caisse-prix').textContent = SV.euros(choisi.prix_centimes, choisi.devise) + (abo ? ' ' + (PERIODES[choisi.periode] || '') : '');
+    $('caisse-detail').textContent = abo ? 'Abonnement sans engagement, renouvelé chaque ' + (choisi.periode === 'an' ? 'année' : 'mois') + ' jusqu\'à ce que tu le résilies, depuis ton compte, en trois clics. Prix TTC.'
+      : 'Achat unique, attaché à ton compte ' + SV.session().email + '. Prix TTC.';
+    $('caisse-acces-texte').textContent = abo ? 'Je demande que mon abonnement commence tout de suite. Si je me rétracte dans les 14 jours, je paierai les jours déjà écoulés.'
+      : 'Je demande l\'accès immédiat à ce contenu numérique, et je reconnais perdre ainsi mon droit de rétractation de 14 jours.';
+    $('caisse-acces').checked = $('caisse-cgv').checked = false; SV.avis('caisse-avis', '', '');
+    $('caisse').showModal();
+  });
+  $('caisse-non').addEventListener('click', function () { $('caisse').close(); });
+  $('f-caisse').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!$('caisse-acces').checked || !$('caisse-cgv').checked) { SV.avis('caisse-avis', 'Il faut cocher les deux cases pour commander.', 'mal'); return; }
+    SV.paiement({ action: 'acheter', produit: choisi.id, acces_immediat: true, cgv: true, retour: location.origin + location.pathname }, 'caisse-avis', $('caisse-oui'));
+  });
+
+  // --- le catalogue, et ce que ce compte a déjà ---
+  function charger() {
+    var catalogue = SV.appel('GET', '/rest/v1/sv_produits?select=id,genre,nom,resume,jeu,prix_centimes,devise,periode,en_avant&actif=is.true&order=ordre');
+    var espace = SV.session() ? SV.rpc('sv_mon_espace') : Promise.resolve({ code: 0 });
+    Promise.all([catalogue, espace]).then(function (t) {
+      PRODUITS = t[0].code === 200 && Array.isArray(t[0].json) ? t[0].json : [];
+      ESPACE = t[1].code === 200 && t[1].json ? { achats: t[1].json.achats || [], abonnement: t[1].json.abonnement || null } : { achats: [], abonnement: null };
+      dessiner();
+    });
+  }
+  var qui = SV.session() && SV.session().uid;
+  SV.quand(function (s) { var q = s && s.uid; if (q !== qui) { qui = q; charger(); } });
+  charger();
+})();
+</script>
+</body>
+</html>

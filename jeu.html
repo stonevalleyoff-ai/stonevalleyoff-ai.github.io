@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>StoneValley · le jeu</title>
+<meta name="description" content="La fiche d'un jeu StoneValley : ce qu'on y fait, ses images, et le bouton pour y jouer.">
+<meta name="theme-color" content="#090b10">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="images/icones/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="StoneValley">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header id="entete"></header>
+<main id="contenu"></main>
+<footer id="pied"></footer>
+<dialog class="visionneuse" id="visionneuse" aria-label="Image en grand"><img id="visionneuse-image" alt=""></dialog>
+
+<script src="assets/editeur.js"></script>
+<script src="assets/jeux.js"></script>
+<script src="assets/site.js"></script>
+<script>
+// La fiche d'un jeu (jeu.html?j=…) : tout vient du catalogue (assets/jeux.js).
+(function () {
+  'use strict';
+  if (!window.SV) return;
+  var SV = window.SV, h = SV.h, $ = SV.$;
+  var j = SV.jeu(new URLSearchParams(location.search).get('j') || '');
+  if (!j) {
+    $('contenu').innerHTML = '<div class="cadre section"><div class="tete"><span class="surtitre">Introuvable</span><h1>Ce jeu n\'est pas au catalogue</h1><p>L\'adresse a peut-être changé.</p></div><p style="margin-top:1.5rem"><a class="bouton" href="./#jeux">Voir tous les jeux</a></p></div>';
+    return;
+  }
+  document.title = j.nom + ' · StoneValley';
+  document.querySelector('meta[name="description"]').content = j.nom + ' : ' + j.resume;
+  var jouer = j.genre === 'jeu' ? 'Jouer gratuitement' : j.action, vers = j.lienAction || j.lien;
+  var autres = window.SV_JEUX.filter(function (a) { return a.id !== j.id && a.genre === 'jeu'; }).slice(0, 3);
+  $('contenu').innerHTML =
+    '<section class="fiche-une" style="--teinte:' + j.teinte + ';--teinte-claire:' + j.claire + '"><img src="' + h(j.couverture) + '" alt="" onerror="this.remove()"><div class="cadre">'
+    + '<ul class="puces"><li class="puce etat">' + h(j.etat) + '</li><li class="puce">' + h(j.categorie) + '</li>' + (j.genre === 'jeu' ? '<li class="puce prix">Gratuit</li>' : '') + '</ul>'
+    + '<h1>' + h(j.nom) + '</h1><p class="accroche">' + h(j.accroche) + '</p>'
+    + '<div style="display:flex;gap:.7rem;flex-wrap:wrap"><a class="bouton grand" href="' + h(vers) + '">' + h(jouer) + '</a>' + (j.lienAction ? '<a class="bouton calme grand" href="' + h(j.lien) + '">Le site d\'Orvane</a>' : '') + '</div></div></section>'
+    + '<section class="section" style="--teinte:' + j.teinte + ';--teinte-claire:' + j.claire + '"><div class="cadre"><div class="fiche">'
+    + '<div class="recit">' + j.recit.map(function (p) { return '<p>' + h(p) + '</p>'; }).join('')
+    + '<h2>Ce qui t\'attend</h2><ul class="forts">' + j.forts.map(function (f) { return '<li>' + h(f) + '</li>'; }).join('') + '</ul>'
+    + (j.captures.length ? '<h2>En images</h2><ul class="captures">' + j.captures.map(function (c, i) { return '<li><button type="button" data-image="' + h(c) + '" aria-label="Voir l\'image ' + (i + 1) + ' en grand"><img src="' + h(c) + '" alt="' + h(j.nom) + ', image ' + (i + 1) + '" loading="lazy"></button></li>'; }).join('') + '</ul>' : '')
+    + '</div>'
+    + '<aside class="encart"><a class="bouton grand" href="' + h(vers) + '">' + h(jouer) + '</a>'
+    + '<dl><dt>Prix</dt><dd>' + (j.genre === 'jeu' ? 'Gratuit' : 'Libre d\'accès') + '</dd><dt>État</dt><dd>' + h(j.etat) + '</dd><dt>Genre</dt><dd>' + h(j.categorie) + '</dd><dt>Joueurs</dt><dd>' + h(j.joueurs) + '</dd><dt>Compte</dt><dd>' + h(j.compte) + '</dd><dt>Où jouer</dt><dd>' + h(j.plateformes) + '</dd><dt>Langue</dt><dd>Français</dd></dl>'
+    + (j.genre === 'jeu' ? '<p class="aide">Rien à télécharger : le jeu s\'ouvre dans ton navigateur. Pour l\'installer, ouvre le menu de ton navigateur, puis « Installer l\'application » ou « Sur l\'écran d\'accueil ».</p>' : '')
+    + '</aside></div></div></section>'
+    + '<section class="section" style="padding-top:0"><div class="cadre"><div class="tete"><h2>À découvrir aussi</h2></div><ul class="jeux">' + autres.map(function (a) {
+      return '<li><article class="jeu" style="--teinte:' + a.teinte + ';--teinte-claire:' + a.claire + '"><div class="image"><img src="' + h(a.couverture) + '" alt="" loading="lazy" onerror="this.remove()"></div>'
+        + '<div class="corps"><span class="genre">' + h(a.categorie) + '</span><h3><a href="jeu.html?j=' + a.id + '">' + h(a.nom) + '</a></h3><p>' + h(a.accroche) + '</p></div></article></li>';
+    }).join('') + '</ul></div></section>';
+  // (une image en grand : un clic l'ouvre, un clic ou Échap la ferme)
+  var v = $('visionneuse');
+  $('contenu').addEventListener('click', function (e) { var b = e.target.closest('[data-image]'); if (!b) return; $('visionneuse-image').src = b.getAttribute('data-image'); v.showModal(); });
+  v.addEventListener('click', function () { v.close(); });
+})();
+</script>
+</body>
+</html>
