@@ -156,7 +156,7 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   await p.fill('#x-mdp', 'unnouveaumdp'); await p.fill('#x-mot', 'effacer'); await p.click('#f-supprimer button[type=submit]');
   verif((await p.locator('#f-supprimer .avis').innerText()).includes('SUPPRIMER') && service.supprimes.length === 0, 'sans le mot SUPPRIMER : refusé');
   await p.fill('#x-mot', 'SUPPRIMER'); await p.click('#f-supprimer button[type=submit]');
-  verif(await dit(p, '#lien-titre', /supprimé/) && service.supprimes.includes('ada@exemple.fr') && await p.locator('#porte').isVisible() && await p.evaluate(() => localStorage.getItem('stonevalley_portail:session')) === null,
+  verif(await dit(p, '#lien-titre', /supprimé/) && service.supprimes.includes('ada@exemple.fr') && await p.locator('#porte').isVisible() && await p.evaluate(() => localStorage.getItem('stonevalley:session')) === null,
     'avec les deux : le compte est effacé, la session aussi, la porte revient');
 
   console.log('8. Se déconnecter');
@@ -165,6 +165,25 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   verif(await p.locator('#porte').isVisible() && service.journal.some(l => l.includes('/auth/v1/logout?scope=local')), 'le menu de l\'en-tête : se déconnecter ferme la session de ce navigateur');
   await entrer(p, 'bob@exemple.fr'); await p.click('[data-p="securite"]'); await p.click('#s-partout');
   verif(await dit(p, '#lien-titre', /partout/) && service.journal.some(l => l.includes('/auth/v1/logout?scope=global')), '« me déconnecter partout » ferme toutes les sessions');
+
+  console.log('8 bis. La session commune au portail et aux jeux');
+  const commune = await p.evaluate(() => JSON.parse(localStorage.getItem('stonevalley:session')));
+  verif(commune === null, 'déconnecté : plus de session commune, les jeux ne sont plus connectés non plus');
+  await entrer(p, 'bob@exemple.fr');
+  const c1 = await p.evaluate(() => JSON.parse(localStorage.getItem('stonevalley:session')));
+  verif(c1 && c1.jeton === 'jeton:bob@exemple.fr:1' && c1.refresh && c1.uid === 'u-bob' && c1.email === 'bob@exemple.fr' && c1.exp > Date.now(), 'connecté : la session est sous la clé commune, dans la forme que lisent les jeux');
+  // (un jeu renouvelle la session pendant que le portail dort : le portail prend la sienne, sans redemander)
+  const avant = service.journal.filter(l => l.includes('grant_type=refresh_token')).length;
+  await p.evaluate(() => { window.SV.session().exp = Date.now() - 1000; const s = JSON.parse(localStorage.getItem('stonevalley:session')); s.jeton = 'jeton:bob@exemple.fr:7'; s.refresh = 'reprise:bob@exemple.fr:7'; s.exp = Date.now() + 3600e3; localStorage.setItem('stonevalley:session', JSON.stringify(s)); });
+  const pris = await p.evaluate(() => window.SV.jeton());
+  verif(pris === 'jeton:bob@exemple.fr:7' && service.journal.filter(l => l.includes('grant_type=refresh_token')).length === avant, 'un jeu a renouvelé la session : le portail prend la sienne au lieu de redemander');
+  await p.evaluate(() => { window.SV.session().exp = Date.now() - 1000; });
+  const renouvele = await p.evaluate(() => window.SV.jeton());
+  verif(renouvele === 'jeton:bob@exemple.fr:8' && await p.evaluate(() => JSON.parse(localStorage.getItem('stonevalley:session')).refresh) === 'reprise:bob@exemple.fr:8', 'personne ne l\'a renouvelée : le portail le fait, et l\'écrit pour les jeux');
+  const vieux = await ouvrir(AVEC);
+  await vieux.evaluate(() => localStorage.setItem('stone_valley_session', JSON.stringify({ jeton: 'jeton:dan@exemple.fr:1', refresh: 'reprise:dan@exemple.fr:1', exp: Date.now() + 3600e3, uid: 'u-dan', email: 'dan@exemple.fr' })));
+  await vieux.goto(BASE + 'compte.html'); await vieux.waitForSelector('#espace:not([hidden])', { timeout: 8000 }).catch(() => {});
+  verif(await vieux.locator('#espace').isVisible() && (await vieux.locator('#moi-email').innerText()) === 'dan@exemple.fr' && await vieux.evaluate(() => !!localStorage.getItem('stonevalley:session') && !localStorage.getItem('stone_valley_session')), 'déjà connecté dans Stone Valley avant la session commune : on l\'est au portail en arrivant');
 
   console.log('9. Avant que la base ne connaisse la boutique (le portail tel qu\'il s\'ouvre aujourd\'hui)');
   p = await ouvrir('boutique.html' + SANS);

@@ -97,7 +97,7 @@
       } else {
         entrer(r.json);
         if (genre === 'email_change') bandeau('Ton adresse est changée', 'Ton compte est maintenant à ' + qui + '.');
-        else bandeau('Ton compte est confirmé', 'Bienvenue, ' + (SV.nom() || qui) + '. Te voilà connecté : choisis un jeu, et connecte-toi dedans avec le même e-mail et le même mot de passe.');
+        else bandeau('Ton compte est confirmé', 'Bienvenue, ' + (SV.nom() || qui) + '. Te voilà connecté, ici et dans les jeux : choisis-en un.');
       }
     });
   }
@@ -110,7 +110,7 @@
       return { bien: true, texte: '', apres: function () {
         f.hidden = true; $('n-mdp').value = $('n-encore').value = '';
         entrer(r.json || JSON.parse(f.dataset.pour || '{}')); jetonLien = null;
-        bandeau('Ton mot de passe est changé', 'Te voilà connecté. Dans les jeux, connecte-toi avec ton nouveau mot de passe.');
+        bandeau('Ton mot de passe est changé', 'Te voilà connecté, ici et dans les jeux.');
       } };
     });
   });
@@ -149,7 +149,7 @@
     if (!p) return 'Il faut au moins une lettre.';
     return SV.avecJeton('PUT', '/auth/v1/user', { data: { pseudo: p } }).then(function (r) {
       if (r.code !== 200) return { bien: false, texte: SV.dire(r) };
-      return { bien: true, texte: 'C\'est enregistré. Les jeux le prendront à ta prochaine connexion.', apres: function () { U = r.json || U; SV.majUtilisateur(r.json); } };
+      return { bien: true, texte: 'C\'est enregistré. Les jeux le prendront à leur prochaine ouverture.', apres: function () { U = r.json || U; SV.majUtilisateur(r.json); } };
     });
   });
   SV.soumettre('f-email', function () {
@@ -173,7 +173,7 @@
       if (r.code !== 200) return { bien: false, texte: r.code === 400 ? 'Ton mot de passe actuel ne va pas.' : SV.dire(r) };
       return SV.avecJeton('PUT', '/auth/v1/user', { password: a }).then(function (r2) {
         if (r2.code !== 200) return { bien: false, texte: SV.dire(r2) };
-        return { bien: true, texte: 'Ton mot de passe est changé. Dans les jeux, connecte-toi avec le nouveau.', apres: function () { $('s-actuel').value = $('s-mdp').value = $('s-encore').value = ''; } };
+        return { bien: true, texte: 'Ton mot de passe est changé. Tu restes connecté, ici et dans les jeux.', apres: function () { $('s-actuel').value = $('s-mdp').value = $('s-encore').value = ''; } };
       });
     });
   });

@@ -2,15 +2,18 @@
 // Chargé par toutes les pages, après assets/jeux.js (et assets/editeur.js). Il pose l'en-tête et le pied, tient la session du compte,
 // et parle au service de comptes : le projet Supabase « Vallée de pierre », le même que celui des jeux. La clé ci-dessous est sa clé
 // publique, faite pour être dans une page ; elle n'ouvre rien sans le mot de passe de quelqu'un.
-// La session (un jeton d'une heure et de quoi le renouveler) est gardée dans ce navigateur, sous une clé à part de celles des jeux :
-// chacun renouvelle la sienne sans gêner l'autre. Le mot de passe n'est gardé nulle part.
+// La session (un jeton d'une heure et de quoi le renouveler) est gardée dans ce navigateur, sous une clé commune au portail et aux jeux
+// du site (« stonevalley:session ») : connecté ici, on l'est dans les jeux, et l'inverse. Un jeton de renouvellement ne sert qu'une
+// fois : avant de renouveler, chacun regarde si un autre ne vient pas de le faire, et prend alors le sien. Le mot de passe n'est gardé
+// nulle part.
 (function () {
   'use strict';
   var RACINE = new URL('..', document.currentScript.src).href;                      // (l'adresse du site, avec sa barre de fin)
   var LOCAL = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
   var SERVICE = 'https://ldazucyrnpewkqdneznc.supabase.co';
   var CLE = 'sb_publishable_qUrfgAsAUzc3jd_tiqkY9g_EVkkQRAs';
-  var STOCKAGE = 'stonevalley_portail:session';
+  var STOCKAGE = 'stonevalley:session';
+  var ANCIENNES = ['stonevalley_portail:session', 'stone_valley_session'];      // (les clés d'avant la session commune : lues une fois)
   var CGU_VERSION = '2026-11';                                                        // (la version des CGU qu'un nouveau compte accepte)
   // (sur sa propre machine seulement, pour les essais : un autre service de comptes, donné une fois dans l'adresse, tenu le temps de l'onglet)
   if (LOCAL) {
@@ -24,8 +27,30 @@
 
   // ---------- la session ----------
   var S = null;
-  function lire() { try { var s = JSON.parse(localStorage.getItem(STOCKAGE) || 'null'); S = s && s.jeton ? s : null; } catch (e) { S = null; } return S; }
-  function ecrire() { try { if (S) localStorage.setItem(STOCKAGE, JSON.stringify(S)); else localStorage.removeItem(STOCKAGE); } catch (e) { /* stockage refusé : la session ne tiendra que cette page */ } }
+  function gardee() {
+    try {
+      var s = JSON.parse(localStorage.getItem(STOCKAGE) || 'null');
+      for (var i = 0; !(s && s.jeton) && i < ANCIENNES.length; i++) s = JSON.parse(localStorage.getItem(ANCIENNES[i]) || 'null');
+      return s && s.jeton && s.uid ? s : null;
+    } catch (e) { return null; }
+  }
+  function lire() {
+    S = gardee();
+    try { if (S && !localStorage.getItem(STOCKAGE)) ecrire(); } catch (e) { /* tant pis */ }      // (venue d'une ancienne clé : elle passe sous la clé commune)
+    return S;
+  }
+  function ecrire() {
+    try {
+      if (S) localStorage.setItem(STOCKAGE, JSON.stringify(S)); else localStorage.removeItem(STOCKAGE);
+      ANCIENNES.forEach(function (c) { localStorage.removeItem(c); });
+    } catch (e) { /* stockage refusé : la session ne tiendra que cette page */ }
+  }
+  // un jeu vient-il de renouveler la session commune ? Alors on prend la sienne, sans rien demander au service
+  function renouveleeAilleurs() {
+    var g = gardee();
+    if (!S || !g || g.uid !== S.uid || !g.refresh || g.refresh === S.refresh || !(g.exp > Date.now() + 60000)) return false;
+    S = g; return true;
+  }
   var ecouteurs = [];
   function change() { entete(); ecouteurs.forEach(function (f) { f(S); }); }
   function prendre(r) {
@@ -54,10 +79,11 @@
   var renouvellement = null;
   function jeton() {
     if (!S) return Promise.resolve(null);
-    if (Date.now() < S.exp - 60000 || !S.refresh) return Promise.resolve(S.jeton);
+    if (Date.now() < S.exp - 60000 || !S.refresh || renouveleeAilleurs()) return Promise.resolve(S.jeton);
     if (!renouvellement) renouvellement = appel('POST', '/auth/v1/token?grant_type=refresh_token', { refresh_token: S.refresh }).then(function (r) {
       renouvellement = null;
       if (r.code === 200 && prendre(r.json)) return S.jeton;
+      if (renouveleeAilleurs()) return S.jeton;                                                  // (un jeu l'a renouvelée pendant qu'on demandait)
       if (r.code === 400 || r.code === 401 || r.code === 403) { oublier(); return null; }      // (la session ne vaut plus)
       return S ? S.jeton : null;                                                                 // (pas de réseau : on essaie avec ce qu'on a)
     });
@@ -216,7 +242,7 @@
   document.addEventListener('click', function (e) { if (e.target.id === 'installer' && invite) { invite.prompt(); invite = null; e.target.hidden = true; } });
 
   lire();
-  window.addEventListener('storage', function (e) { if (e.key === STOCKAGE) { lire(); change(); } });
+  window.addEventListener('storage', function (e) { if (e.key === STOCKAGE || e.key === null) { lire(); change(); } });
   window.SV = { RACINE: RACINE, MDP_MIN: MDP_MIN, CGU_VERSION: CGU_VERSION, $: $, h: h, lien: lien,
     session: function () { return S; }, nom: nom, quand: function (f) { ecouteurs.push(f); },
     appel: appel, avecJeton: avecJeton, jeton: jeton, prendre: prendre, majUtilisateur: majUtilisateur, oublier: oublier, connecter: connecter, quitter: quitter,
