@@ -38,8 +38,9 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   verif(await p.locator('#une h1').innerText() === 'Stone Valley' && await p.locator('#une-rail button').count() === 5, 'la une montre le premier jeu ; son rail en propose cinq (les jeux et le monde)');
   await p.locator('#une-rail button').nth(1).click();
   verif(await p.locator('#une h1').innerText() === 'Lisière' && await p.locator('#une-rail button').nth(1).getAttribute('aria-pressed') === 'true', 'un clic sur le rail change la une');
+  await p.waitForLoadState('networkidle'); const attendues = await p.locator('#liste-jeux .image img, #une-rail img').count();
   const cassees = await p.evaluate(() => Promise.all(Array.from(document.images).map(i => i.decode().then(() => null, () => i.getAttribute('src')))).then(l => l.filter(Boolean)));
-  verif(cassees.length === 0, 'toutes les images de l\'accueil se chargent' + (cassees.length ? ' (manquent : ' + cassees.join(', ') + ')' : ''));
+  verif(cassees.length === 0 && attendues === 9, 'toutes les images de l\'accueil se chargent : quatre vignettes, cinq au rail' + (cassees.length ? ' (manquent : ' + cassees.join(', ') + ')' : ''));
   verif(await p.locator('#bande-monde a').first().getAttribute('href') === 'https://stonevalleyoff-ai.github.io/orvane/monde/' && await p.locator('#entete a[href$="compte.html#creer"]').count() === 1, 'la bande d\'Orvane mène à l\'Observatoire ; l\'en-tête propose de créer un compte');
   await image(p, 'accueil');
   await p.goto(BASE + 'jeu.html?j=portefaix');

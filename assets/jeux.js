@@ -61,7 +61,7 @@ window.SV_JEUX = [
       'Ton chat Twitch vote les sabotages',
       'Des objets précieux cachés dans chaque lieu'
     ],
-    couverture: 'images/jeux/portefaix/couverture.jpg', captures: []
+    couverture: 'images/jeux/portefaix/couverture.jpg', captures: ['images/jeux/portefaix/capture-1.jpg', 'images/jeux/portefaix/capture-2.jpg', 'images/jeux/portefaix/capture-3.jpg']
   },
   {
     id: 'braises', genre: 'jeu', nom: 'Les Dernières Braises', teinte: '#b23a2c', claire: '#e98a6f',
@@ -80,7 +80,7 @@ window.SV_JEUX = [
       'En solo, au clavier ou au doigt',
       'Ta partie est gardée sur ton appareil'
     ],
-    couverture: 'images/jeux/braises/couverture.jpg', captures: ['images/jeux/braises/capture-1.jpg', 'images/jeux/braises/capture-2.jpg', 'images/jeux/braises/capture-3.jpg']
+    couverture: 'images/jeux/braises/nuit.jpg', captures: ['images/jeux/braises/clairiere.jpg', 'images/jeux/braises/capture-1.jpg', 'images/jeux/braises/capture-3.jpg']
   },
   {
     id: 'orvane', genre: 'monde', nom: 'Orvane', teinte: '#3f7f8c', claire: '#8fc9d4',
