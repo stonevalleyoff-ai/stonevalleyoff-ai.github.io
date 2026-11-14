@@ -86,7 +86,7 @@
   tous.forEach(function (j, i) {
     var f = document.createElement('div'); f.style.backgroundImage = 'url("' + j.couverture + '")'; fonds.appendChild(f);
     var li = document.createElement('li');
-    li.innerHTML = '<button type="button" aria-pressed="false" aria-label="À la une : ' + h(j.nom) + '"><img src="' + h(j.couverture) + '" alt="" loading="lazy"><span>' + h(j.nom) + '</span><i></i></button>';
+    li.innerHTML = '<button type="button" aria-pressed="false" aria-label="À la une : ' + h(j.nom) + '"><img src="' + h(j.couverture) + '" alt="" loading="lazy" onerror="this.remove()"><span>' + h(j.nom) + '</span><i></i></button>';
     li.firstChild.addEventListener('click', function () { tourne = false; montrer(i); });
     rail.appendChild(li);
   });

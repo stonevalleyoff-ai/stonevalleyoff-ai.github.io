@@ -21,7 +21,7 @@ window.SV_JEUX = [
       'Un donjon, des boss, des sorts, une forge',
       'Ton personnage te suit d\'un appareil à l\'autre'
     ],
-    couverture: 'images/jeux/stonevalley/couverture.jpg', captures: []
+    couverture: 'images/jeux/stonevalley/couverture.jpg', captures: ['images/jeux/stonevalley/capture-1.jpg', 'images/jeux/stonevalley/capture-2.jpg', 'images/jeux/stonevalley/capture-3.jpg']
   },
   {
     id: 'lisiere', genre: 'jeu', nom: 'Lisière', teinte: '#c8742e', claire: '#f0a868',
@@ -41,7 +41,7 @@ window.SV_JEUX = [
       'Un bestiaire à l\'encre, tiré des lignées vivantes d\'Orvane',
       'Un tableau des scores : combien de nuits tiendras-tu ?'
     ],
-    couverture: 'images/jeux/lisiere/couverture.jpg', captures: []
+    couverture: 'images/jeux/lisiere/couverture.jpg', captures: ['images/jeux/lisiere/capture-1.jpg', 'images/jeux/lisiere/capture-2.jpg', 'images/jeux/lisiere/capture-3.jpg']
   },
   {
     id: 'portefaix', genre: 'jeu', nom: 'Portefaix', teinte: '#e0b24a', claire: '#f3d27e',
@@ -80,7 +80,7 @@ window.SV_JEUX = [
       'En solo, au clavier ou au doigt',
       'Ta partie est gardée sur ton appareil'
     ],
-    couverture: 'images/jeux/braises/couverture.jpg', captures: []
+    couverture: 'images/jeux/braises/couverture.jpg', captures: ['images/jeux/braises/capture-1.jpg', 'images/jeux/braises/capture-2.jpg', 'images/jeux/braises/capture-3.jpg']
   },
   {
     id: 'orvane', genre: 'monde', nom: 'Orvane', teinte: '#3f7f8c', claire: '#8fc9d4',
