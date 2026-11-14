@@ -2,14 +2,14 @@
 // Dans Chromium, contre un faux service de comptes (outils/faux-service.js) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun
 // paiement n'a lieu. L'accueil et les fiches ; la porte du compte ; l'espace (profil, sécurité, bibliothèque, achats, abonnement,
 // données) ; la boutique ; l'arrivée par le lien d'un e-mail ; les textes légaux ; le portail quand la base ne connaît pas encore la
-// boutique ; un téléphone.
+// boutique ; un téléphone ; l'application installable (le manifeste, le service worker, sans réseau).
 //   node outils/essai.js [dossier où poser des images]
 // Il faut Playwright et son Chromium (ou NAVIGATEUR=chrome, pour le Chrome de la machine). Il sort avec le code 0 si tout passe.
 'use strict';
 const http = require('http'), fs = require('fs'), path = require('path');
 const { chromium } = require('playwright');
 const SITE = path.join(__dirname, '..'), { creer } = require('./faux-service.js'), IMAGES = process.argv[2] || null;
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2' };
+const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.woff2': 'font/woff2', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 let ok = true, n = 0;
 const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  ✗ ') + m); };
 (async () => {
@@ -207,6 +207,24 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   await entrer(p, 'bob@exemple.fr'); tient = tient && await large();
   await image(p, 'telephone-compte');
   verif(tient, 'aucune page ne déborde en largeur (accueil, fiche, boutique, texte légal, compte)');
+
+  console.log('12. L\'application installable');
+  p = await ouvrir(AVEC);
+  const manifeste = await (await p.request.get(BASE + await p.locator('link[rel="manifest"]').getAttribute('href'))).json();
+  const icones = []; for (const i of manifeste.icons) icones.push((await p.request.get(BASE + i.src)).status());
+  verif(manifeste.name === 'StoneValley' && manifeste.display === 'standalone' && manifeste.scope === '/' && icones.length === 4 && icones.every(c => c === 200) && manifeste.icons.some(i => i.purpose === 'maskable')
+    && (await p.request.get(BASE + 'images/icones/apple-touch-icon.png')).status() === 200, 'le manifeste : un nom, le plein écran, quatre icônes qui existent (dont une découpable), et celle de l\'iPhone');
+  await p.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, { timeout: 10000 }).catch(() => {});
+  await p.waitForFunction(() => caches.open('stonevalley-portail-1').then(c => c.keys()).then(k => k.length >= 20), null, { timeout: 10000 }).catch(() => {});
+  verif(await p.evaluate(() => !!navigator.serviceWorker.controller), 'le service worker est en place et tient la page');
+  const passe = await p.evaluate(() => fetch('/stonevalley/quelque-chose.js').then(r => r.status));
+  verif(passe === 404 && await p.evaluate(() => caches.open('stonevalley-portail-1').then(c => c.keys()).then(k => !k.some(r => /stonevalley\/quelque/.test(r.url)))), 'il laisse passer l\'adresse d\'un jeu sans y toucher ni la garder');
+  await p.context().setOffline(true);
+  await p.goto(BASE); const horsLigne = await p.locator('#liste-jeux .jeu').count() === 4 && await p.locator('#une h1').innerText() === 'Stone Valley';
+  await p.goto(BASE + 'jeu.html?j=lisiere'); const ficheHorsLigne = await p.locator('h1').innerText() === 'Lisière';
+  await p.goto(BASE + 'legal/cgu.html'); const cguHorsLigne = (await p.locator('article h1').innerText()).includes('Conditions');
+  await p.context().setOffline(false);
+  verif(horsLigne && ficheHorsLigne && cguHorsLigne, 'sans réseau : l\'accueil, une fiche et les conditions s\'ouvrent encore');
 
   verif(erreurs.length === 0, 'aucune erreur de script' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); srv.close(); service.serveur.close(); nu.serveur.close();

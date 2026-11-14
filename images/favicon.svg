@@ -1,1 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="11" fill="#f2a54a"/><path d="M6 37 18.5 13l6.5 12 4.5-7L42 37Z" fill="#1c1305"/><path d="m18.5 13 3.2 5.900-3.400 2.300-2.600-2.900Z" fill="#f2a54a" opacity=".55"/><circle cx="35" cy="13" r="3.200" fill="#1c1305"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+<linearGradient id="feu" x1="0" y1="0" x2="0" y2="420" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffd27a" stop-opacity="0"/><stop offset=".3" stop-color="#ffd27a"/><stop offset=".66" stop-color="#f2a54a"/><stop offset="1" stop-color="#d9622b"/></linearGradient>
+<radialGradient id="halo" cx="256" cy="250" r="250" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#f2a54a" stop-opacity=".38"/><stop offset="1" stop-color="#f2a54a" stop-opacity="0"/></radialGradient>
+<clipPath id="cadre"><rect width="512" height="512" rx="112"/></clipPath>
+</defs>
+<g clip-path="url(#cadre)">
+<rect width="512" height="512" fill="#0b0e16"/>
+<rect width="512" height="512" fill="url(#halo)"/>
+<path d="M100 0h312L256 420Z" fill="url(#feu)"/>
+<circle cx="256" cy="206" r="48" fill="#fff3d0"/>
+<path d="M0 512V236L136 96l120 324v92Z" fill="#1b2231"/>
+<path d="M512 512V236L376 96 256 420v92Z" fill="#141a26"/>
+<path d="M136 96 256 420h-36L100 133Z" fill="#2e384d"/>
+<path d="M376 96 256 420h36l120-287Z" fill="#232c3e"/>
+</g>
+</svg>

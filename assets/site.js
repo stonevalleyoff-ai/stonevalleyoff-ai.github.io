@@ -142,7 +142,7 @@
   }
 
   // ---------- l'en-tête et le pied ----------
-  var MARQUE = '<svg viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="11" fill="#f2a54a"/><path d="M6 37 18.5 13l6.5 12 4.5-7L42 37Z" fill="#1c1305"/><path d="m18.500 13 3.200 5.900-3.400 2.300-2.600-2.900Z" fill="#f2a54a" opacity=".55"/><circle cx="35" cy="13" r="3.200" fill="#1c1305"/></svg>';
+  var MARQUE = '<svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0b0e16"/><path d="M100 30h312L256 420Z" fill="#f2a54a"/><circle cx="256" cy="206" r="48" fill="#fff3d0"/><path d="M0 400V236L136 96l120 324v92H112A112 112 0 0 1 0 400Z" fill="#1b2231"/><path d="M512 400V236L376 96 256 420v92h144a112 112 0 0 0 112-112Z" fill="#141a26"/><path d="M136 96 256 420h-36L100 133Z" fill="#2e384d"/><path d="M376 96 256 420h36l120-287Z" fill="#232c3e"/><rect x="6" y="6" width="500" height="500" rx="106" fill="none" stroke="#f2a54a" stroke-opacity=".45" stroke-width="12"/></svg>';
   var ici = location.pathname.replace(/\/index\.html$/, '/');
   function courant(chemin) { return new URL(lien(chemin)).pathname.replace(/\/index\.html$/, '/') === ici && !/[?&]j=orvane/.test(location.search) ? ' aria-current="page"' : ''; }
   function entete() {
@@ -187,7 +187,7 @@
       + '<div><h2>Compte</h2><ul><li><a href="' + lien('compte.html') + '">Mon compte</a></li><li><a href="' + lien('compte.html#bibliotheque') + '">Ma bibliothèque</a></li><li><a href="' + lien('compte.html#achats') + '">Achats et factures</a></li><li><a href="' + lien('compte.html#abonnement') + '">Abonnement</a></li><li><a href="' + lien('boutique.html') + '">Boutique</a></li></ul></div>'
       + '<div><h2>Informations</h2><ul><li><a href="' + lien('legal/cgu.html') + '">Conditions d\'utilisation</a></li><li><a href="' + lien('legal/cgv.html') + '">Conditions de vente</a></li><li><a href="' + lien('legal/confidentialite.html') + '">Confidentialité</a></li><li><a href="' + lien('legal/cookies.html') + '">Cookies et traceurs</a></li><li><a href="' + lien('legal/mentions-legales.html') + '">Mentions légales</a></li>'
       + (E.contact ? '<li><a href="mailto:' + h(E.contact) + '">Nous écrire</a></li>' : '<li><a href="' + lien('legal/mentions-legales.html#contact') + '">Nous écrire</a></li>') + '</ul></div>'
-      + '</div><div class="fin"><span>© ' + new Date().getFullYear() + ' StoneValley' + (E.nom ? ' · ' + h(E.nom) : '') + '. Tous droits réservés.</span><span>Ce site ne dépose aucun cookie publicitaire ni traceur d\'audience.</span></div></div>';
+      + '</div><div class="fin"><span>© ' + new Date().getFullYear() + ' StoneValley' + (E.nom ? ' · ' + h(E.nom) : '') + '. Tous droits réservés.</span><span>Ce site ne dépose aucun cookie publicitaire ni traceur d\'audience.</span><button type="button" class="lien-bouton" id="installer"' + (invite ? '' : ' hidden') + '>Installer l\'application</button></div></div>';
   }
 
   // ---------- les textes légaux : le nom, l'adresse, les contacts de l'éditeur (assets/editeur.js) ----------
@@ -205,6 +205,15 @@
   // ---------- arrivé par le lien d'un e-mail : c'est la page du compte qui s'en occupe ----------
   var arrive = /(^|[#&])(access_token|error|error_code)=/.test(location.hash);
   if (arrive && !/compte\.html$/.test(location.pathname)) { location.replace(lien('compte.html') + location.hash); return; }
+
+  // ---------- l'application installable ----------
+  // Le service worker (sw.js, à la racine) garde les pages du portail pour l'ouvrir sans réseau ; il ne touche pas aux jeux.
+  // Quand le navigateur sait installer le site, le pied de page propose un bouton.
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || LOCAL)) navigator.serviceWorker.register(lien('sw.js'), { scope: RACINE }).catch(function () { /* pas de service worker : le site marche sans */ });
+  var invite = null;
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); invite = e; var b = $('installer'); if (b) b.hidden = false; });
+  window.addEventListener('appinstalled', function () { invite = null; var b = $('installer'); if (b) b.hidden = true; });
+  document.addEventListener('click', function (e) { if (e.target.id === 'installer' && invite) { invite.prompt(); invite = null; e.target.hidden = true; } });
 
   lire();
   window.addEventListener('storage', function (e) { if (e.key === STOCKAGE) { lire(); change(); } });

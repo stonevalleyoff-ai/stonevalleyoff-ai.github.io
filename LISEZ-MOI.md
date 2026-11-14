@@ -22,6 +22,7 @@ Des pages statiques, sans dépendance ni étape de construction : ce qui est dan
 | `assets/site.css` | l'habillage |
 | `images/jeux/<id>/` | les images d'un jeu : `couverture` (16:9, 1600 × 900) et ses captures |
 | `supabase.sql` | la boutique et le compte, côté base (à passer une fois) |
+| `manifest.webmanifest`, `sw.js`, `images/icones/` | l'application installable : son nom, ses icônes, et le service worker qui garde le portail pour l'ouvrir sans réseau |
 
 ## Avant d'ouvrir au public
 
@@ -67,6 +68,18 @@ Le menu est prêt ; rien ne se vend tant que les trois étapes ci-dessous ne son
 
 Ce que la loi demande à la vente en ligne est déjà dans le menu : le prix TTC et le récapitulatif avant de payer, le bouton « Commander et payer », la case de l'accès immédiat (et de la renonciation à se rétracter pour un contenu numérique), la résiliation d'un abonnement en trois clics depuis le compte.
 
+## L'application
+
+Le portail est une application web installable (PWA). Depuis le site :
+- **sur Android** (Chrome) : le menu ⋮ › « Installer l'application », ou le lien « Installer l'application » en bas de page ;
+- **sur iPhone et iPad** (Safari) : le bouton Partager › « Sur l'écran d'accueil » ;
+- **sur un ordinateur** (Chrome, Edge) : l'icône d'installation dans la barre d'adresse, ou le lien en bas de page.
+
+Installée, elle s'ouvre en plein écran, sans barre de navigateur, et les jeux s'y lancent dedans. Le portail s'ouvre **sans réseau** (l'accueil, les fiches, les textes légaux) ; se connecter et la boutique demandent le réseau.
+
+- **L'icône** (`images/icones/icone.svg`) : deux parois de pierre, et entre elles la vallée éclairée, en forme de V, avec son soleil. C'est aussi la marque de l'en-tête et l'icône de l'onglet. Les fichiers PNG en sont tirés (192, 512, une version plein cadre qu'Android découpe lui-même, et celle de l'iPhone) : si le dessin change, il faut les refaire aux mêmes tailles.
+- **Le service worker** (`sw.js`) est à la racine du site, donc il voit passer aussi les adresses des jeux : il ne répond que pour les fichiers du portail, et laisse tout le reste au réseau. Les jeux gardent le leur. Les pages, scripts et styles sont pris au réseau d'abord : une nouvelle version se voit tout de suite, sans numéro à changer. Une page ou un dossier de plus à la racine s'ajoute à `SOCLE` et à `DU_PORTAIL`.
+
 ## Ajouter un jeu
 
 Dans `assets/jeux.js`, copier une entrée et changer ses textes, ses couleurs (`teinte`, `claire`) et son lien. Poser ses images dans `images/jeux/<id>/`. La une, les vignettes, la fiche, le pied et la bibliothèque le prennent seuls. Ajouter son adresse à `sitemap.xml`.
@@ -77,7 +90,7 @@ Dans `assets/jeux.js`, copier une entrée et changer ses textes, ses couleurs (`
 node outils/essai.js [dossier où poser des images]
 ```
 
-Dans Chromium (il lui faut Playwright), contre un faux service de comptes local (`outils/faux-service.js`) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun paiement n'a lieu. 63 vérifications : l'accueil et les fiches, créer un compte, les liens des e-mails, le profil, la sécurité, la bibliothèque, les achats, l'abonnement (résilier, reprendre), la boutique et sa caisse, télécharger ses données, supprimer son compte, le portail tel qu'il est avant que la base ne connaisse la boutique, les textes légaux et leurs liens, un téléphone.
+Dans Chromium (il lui faut Playwright), contre un faux service de comptes local (`outils/faux-service.js`) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun paiement n'a lieu. 67 vérifications : l'accueil et les fiches, créer un compte, les liens des e-mails, le profil, la sécurité, la bibliothèque, les achats, l'abonnement (résilier, reprendre), la boutique et sa caisse, télécharger ses données, supprimer son compte, le portail tel qu'il est avant que la base ne connaisse la boutique, les textes légaux et leurs liens, un téléphone, l'application installable (manifeste, service worker, ouverture sans réseau).
 
 Pour voir le site sur sa machine avec le faux service (comptes `ada@exemple.fr`, `bob@exemple.fr`… mot de passe `bon`) : `node outils/faux-service.js 8136`, servir ce dossier (`python3 -m http.server 8137`), puis ouvrir `http://127.0.0.1:8137/?service=http://127.0.0.1:8136`. Sur sa propre machine seulement, la page accepte un autre service de comptes dans son adresse : c'est ce dont l'essai se sert.
 
