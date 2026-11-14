@@ -1,29 +1,87 @@
-# StoneValley · les jeux
+# StoneValley · le portail
 
-La page d'accueil de tous les jeux : https://stonevalleyoff-ai.github.io/
+Le site de tous les jeux : https://stonevalleyoff-ai.github.io/
 
-Une seule page (`index.html`), sans dépendance :
+Des pages statiques, sans dépendance ni étape de construction : ce qui est dans le dépôt est ce qui est servi.
 
-- **Les jeux** : une fiche et un bouton pour chacun — [Stone Valley](https://stonevalleyoff-ai.github.io/stonevalley/), [Lisière](https://stonevalleyoff-ai.github.io/Lisiere/), [Portefaix](https://stonevalleyoff-ai.github.io/Portefaix/), [Les Dernières Braises](https://stonevalleyoff-ai.github.io/lastembers/), et [Orvane](https://stonevalleyoff-ai.github.io/orvane/), le monde qu'ils partagent.
-- **Le compte** : le même pour les jeux qui en demandent un (le projet Supabase « Vallée de pierre »). On peut le créer ici, et demander un nouveau mot de passe. On se connecte dans chaque jeu.
-- **L'arrivée par le lien d'un e-mail** : la page confirme l'inscription, ouvre le formulaire « Nouveau mot de passe », ou dit que le lien a expiré. Elle lit ce que le lien rapporte dans son adresse (un jeton, ou une erreur) et l'en efface aussitôt.
+| page | ce qu'elle fait |
+| --- | --- |
+| `index.html` | l'accueil : la une (un jeu à la fois, en grand), les vignettes des jeux, la bande d'Orvane, l'appel au compte |
+| `jeu.html?j=…` | la fiche d'un jeu : ce qu'on y fait, ses images, son bouton |
+| `compte.html` | le compte : se connecter, créer un compte, mot de passe oublié ; puis l'espace : profil, sécurité, bibliothèque, achats et factures, abonnement, données |
+| `boutique.html` | la boutique : les abonnements, les jeux et contenus à vendre, la caisse |
+| `legal/` | les conditions d'utilisation, les conditions de vente, la confidentialité, les cookies, les mentions légales |
+| `404.html` | la page des adresses perdues |
+
+| fichier | rôle |
+| --- | --- |
+| `assets/jeux.js` | **le catalogue** : tout ce que le site dit d'un jeu (nom, textes, couleurs, images, lien) |
+| `assets/editeur.js` | **l'éditeur** : le nom, l'adresse, les contacts que citent les textes légaux |
+| `assets/site.js` | le socle : l'en-tête, le pied, la session, les appels au service de comptes |
+| `assets/compte.js` | la page du compte |
+| `assets/site.css` | l'habillage |
+| `images/jeux/<id>/` | les images d'un jeu : `couverture` (16:9, 1600 × 900) et ses captures |
+| `supabase.sql` | la boutique et le compte, côté base (à passer une fois) |
+
+## Avant d'ouvrir au public
+
+Ce qui reste à faire à la main, dans l'ordre :
+
+1. **Remplir `assets/editeur.js`.** Tant qu'une valeur est vide, les textes légaux affichent « à compléter » en rouge et un avis « version préparatoire ». Un site qui s'adresse au public doit dire qui l'édite ; un site qui vend doit en plus donner un téléphone, un numéro d'immatriculation et un médiateur de la consommation.
+2. **Faire relire les textes de `legal/`** par un juriste. Ils sont écrits pour ces jeux-ci, d'après ce que le code fait vraiment des données, et suivent le droit français de la consommation et le RGPD ; mais ils engagent l'éditeur, et aucun n'a été validé par un professionnel. À vérifier en particulier : la durée de conservation des comptes inactifs (trois ans, annoncée dans la confidentialité, à appliquer), et ce que le Supabase d'Orvane garde des envois des joueurs.
+3. **Régler Supabase** (projet « Vallée de pierre ») :
+   - *Authentication › URL Configuration* : **Site URL** = `https://stonevalleyoff-ai.github.io/` (les liens des e-mails y ramènent ; la page les passe au compte).
+   - *Authentication › Emails › SMTP Settings* : brancher un vrai service d'envoi. Celui par défaut est limité à quelques e-mails par heure : il ne tient pas une ouverture.
+   - *Authentication › Providers › Email* : longueur minimale du mot de passe à 8 (le portail demande 8), « Confirm email » et « Secure email change » allumés.
+   - passer `supabase.sql` dans *SQL Editor* (voir « La boutique »).
+4. **Mettre à jour `CGU_VERSION`** (dans `assets/site.js`) à chaque changement des conditions : chaque nouveau compte garde la version qu'il a acceptée, et sa date.
+
+## Le compte
+
+Le même que dans les jeux : les comptes du projet Supabase « Vallée de pierre ». La clé écrite dans `assets/site.js` est sa clé publique, faite pour être dans une page : elle n'ouvre rien sans le mot de passe de quelqu'un.
+
+- **La session** (un jeton d'une heure, et de quoi le renouveler) est gardée dans le navigateur sous `stonevalley_portail:session`, à part de celles des jeux : chacun renouvelle la sienne sans gêner l'autre. On se connecte donc ici, et dans chaque jeu. Le mot de passe n'est gardé nulle part.
+- **Créer un compte** demande d'accepter les conditions et de dire qu'on a 15 ans (ou l'accord d'un parent). La version acceptée et sa date sont gardées avec le compte (`cgu`, `cgu_le`, à côté du `pseudo`).
+- **L'arrivée par le lien d'un e-mail** (confirmation, nouveau mot de passe, changement d'adresse, lien expiré) : le lien ramène à l'accueil, qui passe la main à `compte.html`. Le jeton est lu puis effacé de l'adresse aussitôt.
+- **Changer de mot de passe** et **supprimer son compte** redemandent le mot de passe.
+- **Télécharger ses données** et **supprimer son compte** marchent dès aujourd'hui, avec les fonctions que les jeux ont déjà (`vp_charger_compte`, `lisiere_moi`, `vp_supprimer_compte`). Une fois `supabase.sql` passé, ce sont `sv_mes_donnees` (tout, jeu par jeu) et `sv_compte_supprimer` (qui refuse tant qu'un abonnement est encore prélevé) qui servent.
+
+## La boutique
+
+Le menu est prêt ; rien ne se vend tant que les trois étapes ci-dessous ne sont pas faites. D'ici là la boutique dit « tous nos jeux se jouent gratuitement », et l'espace du compte affiche « aucun achat », « aucun abonnement », « les paiements ne sont pas encore ouverts ».
+
+1. **La base** : passer `supabase.sql`. Trois tables fermées (`sv_produits`, `sv_achats`, `sv_abonnements`) et trois fonctions (`sv_mon_espace`, `sv_mes_donnees`, `sv_compte_supprimer`), tout préfixé `sv_` ; rien des jeux n'est touché. Le fichier a été essayé sur un Postgres local : un visiteur ne lit que les produits actifs, un compte ne lit que ses achats, personne n'écrit depuis une page.
+2. **Les produits** : une ligne par offre dans `sv_produits` (un exemple est à la fin de `supabase.sql`). `actif` la rend visible. Les prix sont en centimes, toutes taxes comprises.
+3. **Le paiement** : choisir un prestataire, puis écrire la fonction Supabase (*Edge Function*) `sv-paiement`. C'est le seul morceau qui manque, parce qu'il dépend du prestataire et de son compte marchand. Le site lui envoie, avec le jeton du joueur :
+
+   | ce que le site envoie | ce qu'il attend en retour |
+   | --- | --- |
+   | `{ action: 'acheter', produit, acces_immediat: true, cgv: true, retour }` | `{ url }` : la page de paiement du prestataire, qui ramène ensuite à `retour?paiement=ok` (ou `=annule`) |
+   | `{ action: 'gerer', retour }` | `{ url }` : la page du prestataire où le joueur gère ses cartes et ses factures |
+   | `{ action: 'resilier' }` | `{ ok: true, periode_fin }` : l'abonnement s'arrêtera à la fin de la période payée |
+   | `{ action: 'reprendre' }` | `{ ok: true }` |
+
+   Un refus se rend avec un code 4xx et `{ message }`, que le site affiche. La même fonction (ou une seconde) reçoit les avis du prestataire (*webhook*) et écrit, avec la clé de service, dans `sv_achats` et `sv_abonnements` : c'est la seule à pouvoir le faire.
+
+   Le choix du prestataire compte pour la TVA : avec un prestataire de paiement simple (Stripe…), c'est l'éditeur qui vend, facture et déclare la TVA de chaque pays d'Europe ; avec un « marchand officiel » (Paddle, Lemon Squeezy…), c'est lui qui vend et s'en charge, contre une commission plus forte. Les conditions de vente (`legal/cgv.html`) sont écrites pour le premier cas.
+
+Ce que la loi demande à la vente en ligne est déjà dans le menu : le prix TTC et le récapitulatif avant de payer, le bouton « Commander et payer », la case de l'accès immédiat (et de la renonciation à se rétracter pour un contenu numérique), la résiliation d'un abonnement en trois clics depuis le compte.
 
 ## Ajouter un jeu
 
-Copier une fiche `<li class="jeu">` dans `index.html`, changer sa couleur (`--teinte`), son genre, son nom, sa phrase et son lien.
-
-## Le réglage côté Supabase
-
-Pour que les liens des e-mails ramènent ici par défaut : dans le projet, *Authentication › URL Configuration*, mettre **Site URL** à `https://stonevalleyoff-ai.github.io/`. Un jeu qui veut que ses propres liens ramènent chez lui ajoute son adresse aux *Redirect URLs* (Portefaix : `https://stonevalleyoff-ai.github.io/Portefaix/**`).
-
-Les e-mails eux-mêmes sont envoyés par le projet : son service d'envoi par défaut est limité à quelques envois par heure ; pour de vrais joueurs, il faut y brancher un service d'envoi (*Emails › SMTP Settings*).
-
-La clé écrite dans la page est la clé publique du projet, faite pour être dans une page : elle ne donne accès à rien sans le mot de passe de quelqu'un. Le mot de passe n'est gardé nulle part.
+Dans `assets/jeux.js`, copier une entrée et changer ses textes, ses couleurs (`teinte`, `claire`) et son lien. Poser ses images dans `images/jeux/<id>/`. La une, les vignettes, la fiche, le pied et la bibliothèque le prennent seuls. Ajouter son adresse à `sitemap.xml`.
 
 ## L'essai
 
 ```
-node outils/essai.js
+node outils/essai.js [dossier où poser des images]
 ```
 
-Dans Chromium (il lui faut Playwright), contre un faux service de comptes local (`outils/faux-service.js`) : aucun vrai e-mail ne part, aucun compte n'est créé. Seize vérifications : les fiches, créer un compte, mot de passe oublié, les trois sortes de lien d'e-mail, la page sur un téléphone en thème sombre. Sur sa propre machine seulement, la page accepte un autre service de comptes dans son adresse (`?service=…`) : c'est ce dont l'essai se sert.
+Dans Chromium (il lui faut Playwright), contre un faux service de comptes local (`outils/faux-service.js`) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun paiement n'a lieu. 63 vérifications : l'accueil et les fiches, créer un compte, les liens des e-mails, le profil, la sécurité, la bibliothèque, les achats, l'abonnement (résilier, reprendre), la boutique et sa caisse, télécharger ses données, supprimer son compte, le portail tel qu'il est avant que la base ne connaisse la boutique, les textes légaux et leurs liens, un téléphone.
+
+Pour voir le site sur sa machine avec le faux service (comptes `ada@exemple.fr`, `bob@exemple.fr`… mot de passe `bon`) : `node outils/faux-service.js 8136`, servir ce dossier (`python3 -m http.server 8137`), puis ouvrir `http://127.0.0.1:8137/?service=http://127.0.0.1:8136`. Sur sa propre machine seulement, la page accepte un autre service de comptes dans son adresse : c'est ce dont l'essai se sert.
+
+## Les polices, les images
+
+- Alegreya Sans (Juan Pablo del Peral, Huerta Tipográfica), licence OFL : `assets/polices/`, avec le texte de la licence. Réduite aux caractères du français.
+- Les images des jeux sont des captures des jeux. Celles d'Orvane viennent de son dépôt (`assets/ILLUSTRATIONS.md` y dit comment elles ont été faites).

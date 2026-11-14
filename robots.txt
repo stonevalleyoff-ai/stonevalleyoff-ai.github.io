@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+Disallow: /compte.html
+Sitemap: https://stonevalleyoff-ai.github.io/sitemap.xml

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mon compte · StoneValley</title>
+<meta name="description" content="Le compte StoneValley : se connecter, créer un compte, gérer son profil, sa bibliothèque, ses achats, son abonnement et ses données.">
+<meta name="theme-color" content="#090b10">
+<meta name="robots" content="noindex">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/site.css">
+</head>
+<body>
+<header id="entete"></header>
+<main id="contenu">
+<div class="cadre">
+
+  <!-- arrivé par le lien d'un e-mail : confirmer son compte, choisir un nouveau mot de passe, ou apprendre que le lien ne vaut plus -->
+  <section class="bandeau" id="lien" hidden aria-live="polite" style="margin-top:1.5rem">
+    <h2 id="lien-titre"></h2>
+    <p id="lien-texte"></p>
+    <form id="f-nouveau" hidden novalidate style="max-width:24rem">
+      <label>Ton nouveau mot de passe (8 caractères au moins)
+        <input id="n-mdp" type="password" autocomplete="new-password" minlength="8" required></label>
+      <label>Encore une fois
+        <input id="n-encore" type="password" autocomplete="new-password" minlength="8" required></label>
+      <p class="avis" role="status"></p>
+      <button type="submit" class="bouton">Enregistrer</button>
+    </form>
+  </section>
+
+  <!-- la porte : se connecter, créer un compte, mot de passe oublié -->
+  <div class="porte" id="porte" hidden>
+    <div class="vante">
+      <span class="surtitre">Le compte StoneValley</span>
+      <h1>Un seul compte, tous les jeux</h1>
+      <ul>
+        <li>Le même e-mail et le même mot de passe dans chaque jeu</li>
+        <li>Ton personnage et tes scores te suivent d'un appareil à l'autre</li>
+        <li>Ta bibliothèque, tes achats et ton abonnement au même endroit</li>
+        <li>Pas de publicité ; tes données ne sont ni vendues ni partagées</li>
+      </ul>
+    </div>
+    <div class="carte">
+      <div class="onglets" role="tablist" aria-label="Compte">
+        <button type="button" role="tab" id="o-connexion" aria-controls="f-connexion" aria-selected="true">Se connecter</button>
+        <button type="button" role="tab" id="o-creer" aria-controls="f-creer" aria-selected="false">Créer un compte</button>
+      </div>
+
+      <form id="f-connexion" role="tabpanel" aria-labelledby="o-connexion" novalidate>
+        <label>Ton e-mail
+          <input id="c-email" type="email" autocomplete="username" required></label>
+        <label>Ton mot de passe
+          <input id="c-mdp" type="password" autocomplete="current-password" required></label>
+        <p class="avis" role="status"></p>
+        <button type="submit" class="bouton">Se connecter</button>
+        <p><button type="button" class="lien-bouton" id="vers-oubli">Mot de passe oublié ?</button></p>
+      </form>
+
+      <form id="f-creer" role="tabpanel" aria-labelledby="o-creer" novalidate hidden>
+        <label>Ton pseudo (16 caractères au plus)
+          <input id="i-pseudo" type="text" maxlength="16" autocomplete="nickname"></label>
+        <label>Ton e-mail
+          <input id="i-email" type="email" autocomplete="email" required></label>
+        <label>Un mot de passe (8 caractères au moins)
+          <input id="i-mdp" type="password" autocomplete="new-password" minlength="8" required></label>
+        <label class="case"><input id="i-cgu" type="checkbox" required>
+          <span>J'accepte les <a href="legal/cgu.html" target="_blank" rel="noopener">conditions d'utilisation</a> et j'ai lu la <a href="legal/confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span></label>
+        <label class="case"><input id="i-age" type="checkbox" required>
+          <span>J'ai 15 ans ou plus, ou mon parent (ou tuteur) est d'accord pour que je crée ce compte.</span></label>
+        <p class="avis" role="status"></p>
+        <button type="submit" class="bouton">Créer mon compte</button>
+      </form>
+
+      <form id="f-oubli" novalidate hidden>
+        <h2 style="font-size:1.3rem">Mot de passe oublié</h2>
+        <p class="sourd">Donne l'e-mail de ton compte : on t'envoie un lien pour en choisir un nouveau.</p>
+        <label>L'e-mail de ton compte
+          <input id="o-email" type="email" autocomplete="email" required></label>
+        <p class="avis" role="status"></p>
+        <button type="submit" class="bouton">M'envoyer un lien</button>
+        <p><button type="button" class="lien-bouton" id="vers-connexion">Revenir à la connexion</button></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- l'espace : le profil, la sécurité, la bibliothèque, les achats, l'abonnement, les données -->
+  <div class="espace" id="espace" hidden>
+    <div class="cote">
+      <div class="moi"><span class="pastille" id="moi-pastille"></span><div><strong id="moi-nom"></strong><span id="moi-email"></span></div></div>
+      <div class="menu-espace" role="tablist" aria-label="Mon espace" id="menu-espace">
+        <button type="button" role="tab" data-p="profil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4.500 4-6 8-6s7 1.500 8 6"/></svg>Profil</button>
+        <button type="button" role="tab" data-p="securite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sécurité</button>
+        <button type="button" role="tab" data-p="bibliotheque"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="7" rx="1.500"/><rect x="14" y="4" width="7" height="7" rx="1.500"/><rect x="3" y="14" width="7" height="7" rx="1.500"/><rect x="14" y="14" width="7" height="7" rx="1.500"/></svg>Bibliothèque</button>
+        <button type="button" role="tab" data-p="achats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></svg>Achats et factures</button>
+        <button type="button" role="tab" data-p="abonnement"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.300-5.600M20 4v4h-4"/></svg>Abonnement</button>
+        <button type="button" role="tab" data-p="donnees"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 5 3.500 8 8 9 4.500-1 8-4 8-9V6z"/></svg>Données et confidentialité</button>
+      </div>
+      <button type="button" class="bouton calme petit" id="deconnexion">Se déconnecter</button>
+    </div>
+
+    <div>
+      <section class="panneau" id="p-profil" role="tabpanel" hidden>
+        <h1>Profil</h1>
+        <div class="carte">
+          <h2>Ton pseudo</h2>
+          <p class="sourd">Le nom que les autres joueurs voient dans les jeux en ligne et aux tableaux des scores. Ton adresse e-mail n'y paraît jamais.</p>
+          <form id="f-pseudo" novalidate>
+            <label>Pseudo (16 caractères au plus)
+              <input id="p-pseudo" type="text" maxlength="16" autocomplete="nickname"></label>
+            <p class="avis" role="status"></p>
+            <button type="submit" class="bouton">Enregistrer</button>
+          </form>
+        </div>
+        <div class="carte">
+          <h2>Ton adresse e-mail</h2>
+          <p class="sourd">Elle sert à te connecter et à te joindre pour ton compte (confirmation, mot de passe, achats). Adresse actuelle : <strong id="p-email-actuel"></strong></p>
+          <form id="f-email" novalidate>
+            <label>Nouvelle adresse
+              <input id="p-email" type="email" autocomplete="email" required></label>
+            <p class="avis" role="status"></p>
+            <button type="submit" class="bouton">Changer d'adresse</button>
+          </form>
+        </div>
+        <p class="aide" id="p-depuis"></p>
+      </section>
+
+      <section class="panneau" id="p-securite" role="tabpanel" hidden>
+        <h1>Sécurité</h1>
+        <div class="carte">
+          <h2>Changer de mot de passe</h2>
+          <form id="f-mdp" novalidate>
+            <label>Ton mot de passe actuel
+              <input id="s-actuel" type="password" autocomplete="current-password" required></label>
+            <label>Le nouveau (8 caractères au moins)
+              <input id="s-mdp" type="password" autocomplete="new-password" minlength="8" required></label>
+            <label>Encore une fois
+              <input id="s-encore" type="password" autocomplete="new-password" minlength="8" required></label>
+            <p class="avis" role="status"></p>
+            <button type="submit" class="bouton">Changer de mot de passe</button>
+          </form>
+        </div>
+        <div class="carte">
+          <h2>Tes appareils</h2>
+          <p class="sourd">Un appareil perdu, un ordinateur partagé ? Ferme d'un coup toutes tes sessions, dans tous les jeux et sur tous les appareils. Il faudra te reconnecter partout.</p>
+          <p class="avis" id="s-partout-avis" role="status"></p>
+          <div><button type="button" class="bouton calme" id="s-partout">Me déconnecter partout</button></div>
+        </div>
+      </section>
+
+      <section class="panneau" id="p-bibliotheque" role="tabpanel" hidden>
+        <h1>Ma bibliothèque</h1>
+        <div class="carte"><h2>Mes jeux</h2><ul class="liste" id="b-jeux"></ul></div>
+        <div class="carte" id="b-contenus-carte" hidden><h2>Mes contenus</h2><ul class="liste" id="b-contenus"></ul></div>
+      </section>
+
+      <section class="panneau" id="p-achats" role="tabpanel" hidden>
+        <h1>Achats et factures</h1>
+        <div class="carte">
+          <h2>Historique</h2>
+          <div id="a-liste"></div>
+        </div>
+        <div class="carte">
+          <h2>Moyens de paiement</h2>
+          <p class="sourd">Tes cartes ne sont jamais gardées par StoneValley : elles sont tenues par notre prestataire de paiement. Tu les gères sur sa page sécurisée.</p>
+          <p class="avis" id="a-gerer-avis" role="status"></p>
+          <div><button type="button" class="bouton calme" id="a-gerer">Gérer mes moyens de paiement</button></div>
+        </div>
+        <p class="aide">Un achat par erreur, une question ? Les <a href="legal/cgv.html">conditions de vente</a> disent comment te rétracter et te faire rembourser.</p>
+      </section>
+
+      <section class="panneau" id="p-abonnement" role="tabpanel" hidden>
+        <h1>Abonnement</h1>
+        <div class="carte" id="ab-carte"></div>
+        <p class="aide">Tu peux résilier à tout moment, ici même : tu gardes tes avantages jusqu'à la fin de la période payée. Voir les <a href="legal/cgv.html#abonnements">conditions de vente</a>.</p>
+      </section>
+
+      <section class="panneau" id="p-donnees" role="tabpanel" hidden>
+        <h1>Données et confidentialité</h1>
+        <div class="carte">
+          <h2>Télécharger mes données</h2>
+          <p class="sourd">Un fichier avec tout ce que StoneValley garde sur ton compte : ton profil, tes personnages, tes parties, tes achats. C'est ton droit d'accès et de portabilité.</p>
+          <p class="avis" id="d-export-avis" role="status"></p>
+          <div><button type="button" class="bouton calme" id="d-export">Télécharger mes données</button></div>
+        </div>
+        <div class="carte">
+          <h2>Ce que tu as accepté</h2>
+          <p class="sourd" id="d-cgu"></p>
+          <p class="sourd">Ce que nous gardons, pourquoi et combien de temps : la <a href="legal/confidentialite.html">politique de confidentialité</a>.</p>
+        </div>
+        <div class="carte" style="border-color:rgba(255,143,128,.45)">
+          <h2>Supprimer mon compte</h2>
+          <p class="sourd">Ton compte, ton adresse, tes personnages, tes scores et tes messages sont effacés tout de suite, dans tous les jeux. C'est définitif : personne ne pourra les retrouver, nous non plus. Les factures de tes achats sont gardées, sans ton compte, le temps que la loi l'exige.</p>
+          <form id="f-supprimer" novalidate>
+            <label>Ton mot de passe
+              <input id="x-mdp" type="password" autocomplete="current-password" required></label>
+            <label>Pour confirmer, écris SUPPRIMER
+              <input id="x-mot" type="text" autocomplete="off" autocapitalize="characters" required></label>
+            <p class="avis" role="status"></p>
+            <button type="submit" class="bouton danger">Supprimer définitivement mon compte</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+</main>
+<footer id="pied"></footer>
+
+<dialog class="caisse" id="d-resilier" aria-labelledby="d-resilier-titre">
+  <h2 id="d-resilier-titre" style="font-size:1.4rem">Résilier ton abonnement ?</h2>
+  <p class="sourd" id="d-resilier-texte" style="margin:.8rem 0"></p>
+  <p class="avis" id="d-resilier-avis" role="status"></p>
+  <div class="gestes"><button type="button" class="bouton calme" id="d-resilier-non">Garder mon abonnement</button><button type="button" class="bouton danger" id="d-resilier-oui">Confirmer la résiliation</button></div>
+</dialog>
+
+<script src="assets/editeur.js"></script>
+<script src="assets/jeux.js"></script>
+<script src="assets/site.js"></script>
+<script src="assets/compte.js"></script>
+</body>
+</html>
