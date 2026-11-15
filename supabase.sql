@@ -104,6 +104,8 @@ begin
       'parties', (select coalesce(jsonb_agg(to_jsonb(l) - 'utilisateur' order by l.debut), '[]'::jsonb) from public.lisiere_parties l where l.utilisateur = moi)),
     'portefaix', jsonb_build_object(
       'salons', (select coalesce(jsonb_agg(to_jsonb(m) - 'utilisateur'), '[]'::jsonb) from public.pf_membres m where m.utilisateur = moi)),
+    'neural_arena', jsonb_build_object(
+      'cerveaux', (select coalesce(jsonb_agg(to_jsonb(n) - 'utilisateur' order by n.cree_le), '[]'::jsonb) from public.na_cerveaux n where n.utilisateur = moi)),
     'orvane', jsonb_build_object(
       'envois', (select coalesce(jsonb_agg(to_jsonb(o) - 'compte' order by o.recu), '[]'::jsonb) from public.orvane_pressions o where o.compte = moi)),
     'boutique', jsonb_build_object(

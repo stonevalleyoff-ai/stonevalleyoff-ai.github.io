@@ -258,11 +258,12 @@
       if (r.code === 200 && r.json) return r.json;
       if (r.code !== 404) return null;
       // (la base ne connaît pas encore sv_mes_donnees : on rassemble ce que les jeux savent rendre)
-      return Promise.all([SV.avecJeton('GET', '/auth/v1/user'), SV.rpc('vp_charger_compte'), SV.rpc('lisiere_moi')]).then(function (t) {
+      return Promise.all([SV.avecJeton('GET', '/auth/v1/user'), SV.rpc('vp_charger_compte'), SV.rpc('lisiere_moi'), SV.rpc('na_mes_cerveaux')]).then(function (t) {
         if (t[0].code !== 200) return null;
         var u = t[0].json;
         return { compte: { id: u.id, email: u.email, cree_le: u.created_at, derniere_connexion: u.last_sign_in_at, profil: u.user_metadata },
-          stone_valley: t[1].code === 200 ? t[1].json : null, lisiere: t[2].code === 200 ? t[2].json : null };
+          stone_valley: t[1].code === 200 ? t[1].json : null, lisiere: t[2].code === 200 ? t[2].json : null,
+          neural_arena: t[3].code === 200 ? { cerveaux: t[3].json } : null };
       });
     }).then(function (d) {
       b.disabled = false;

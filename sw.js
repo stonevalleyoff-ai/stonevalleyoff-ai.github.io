@@ -6,12 +6,12 @@
 // Les pages, les scripts et les styles : le réseau d'abord (une nouvelle version se voit tout de suite), la copie gardée sinon.
 // Les images et les polices : la copie gardée d'abord, rafraîchie en arrière-plan.
 'use strict';
-const CACHE = 'stonevalley-portail-1';
+const CACHE = 'stonevalley-portail-2';
 const SOCLE = ['./', 'jeu.html', 'compte.html', 'boutique.html', '404.html', 'manifest.webmanifest',
   'assets/site.css', 'assets/site.js', 'assets/jeux.js', 'assets/editeur.js', 'assets/compte.js',
   'assets/polices/AlegreyaSans-Regular.woff2', 'assets/polices/AlegreyaSans-Medium.woff2', 'assets/polices/AlegreyaSans-Bold.woff2',
   'images/favicon.svg', 'images/icones/icone-192.png',
-  'images/jeux/stonevalley/couverture.jpg', 'images/jeux/lisiere/couverture.jpg', 'images/jeux/portefaix/couverture.jpg', 'images/jeux/braises/nuit.jpg', 'images/jeux/orvane/couverture.webp',
+  'images/jeux/stonevalley/couverture.jpg', 'images/jeux/lisiere/couverture.jpg', 'images/jeux/portefaix/couverture.jpg', 'images/jeux/braises/nuit.jpg', 'images/jeux/neuralarena/couverture.jpg', 'images/jeux/orvane/couverture.webp',
   'legal/cgu.html', 'legal/cgv.html', 'legal/confidentialite.html', 'legal/cookies.html', 'legal/mentions-legales.html'];
 const RACINE = new URL('./', self.location).pathname;
 const DU_PORTAIL = new RegExp('^' + RACINE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|index\\.html$|jeu\\.html$|compte\\.html$|boutique\\.html$|404\\.html$|manifest\\.webmanifest$|assets/|images/|legal/)');
