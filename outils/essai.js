@@ -34,13 +34,13 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   console.log('1. L\'accueil et les fiches');
   let p = await ouvrir(AVEC);
   const jeux = await p.locator('#liste-jeux .jeu').evaluateAll(l => l.map(e => ({ nom: e.querySelector('h3').textContent, jouer: e.querySelector('.bas a').href, fiche: e.querySelector('h3 a').getAttribute('href') })));
-  verif(jeux.length === 4 && jeux.every(j => j.jouer.startsWith('https://stonevalleyoff-ai.github.io/') && /^jeu\.html\?j=/.test(j.fiche)), `quatre vignettes, chacune sa fiche et son bouton Jouer : ${jeux.map(j => j.nom).join(', ')}`);
-  verif(await p.locator('#une h1').innerText() === 'Stone Valley' && await p.locator('#une-rail button').count() === 5, 'la une montre le premier jeu ; son rail en propose cinq (les jeux et le monde)');
+  verif(jeux.length === 5 && jeux.every(j => j.jouer.startsWith('https://stonevalleyoff-ai.github.io/') && /^jeu\.html\?j=/.test(j.fiche)), `cinq vignettes, chacune sa fiche et son bouton Jouer : ${jeux.map(j => j.nom).join(', ')}`);
+  verif(await p.locator('#une h1').innerText() === 'Stone Valley' && await p.locator('#une-rail button').count() === 6, 'la une montre le premier jeu ; son rail en propose six (les jeux et le monde)');
   await p.locator('#une-rail button').nth(1).click();
   verif(await p.locator('#une h1').innerText() === 'Lisière' && await p.locator('#une-rail button').nth(1).getAttribute('aria-pressed') === 'true', 'un clic sur le rail change la une');
   await p.waitForLoadState('networkidle'); const attendues = await p.locator('#liste-jeux .image img, #une-rail img').count();
   const cassees = await p.evaluate(() => Promise.all(Array.from(document.images).map(i => i.decode().then(() => null, () => i.getAttribute('src')))).then(l => l.filter(Boolean)));
-  verif(cassees.length === 0 && attendues === 9, 'toutes les images de l\'accueil se chargent : quatre vignettes, cinq au rail' + (cassees.length ? ' (manquent : ' + cassees.join(', ') + ')' : ''));
+  verif(cassees.length === 0 && attendues === 11, 'toutes les images de l\'accueil se chargent : cinq vignettes, six au rail' + (cassees.length ? ' (manquent : ' + cassees.join(', ') + ')' : ''));
   verif(await p.locator('#bande-monde a').first().getAttribute('href') === 'https://stonevalleyoff-ai.github.io/orvane/monde/' && await p.locator('#entete a[href$="compte.html#creer"]').count() === 1, 'la bande d\'Orvane mène à l\'Observatoire ; l\'en-tête propose de créer un compte');
   await image(p, 'accueil');
   await p.goto(BASE + 'jeu.html?j=portefaix');
@@ -109,7 +109,7 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   console.log('5. La bibliothèque, les achats, l\'abonnement');
   await p.click('[data-p="bibliotheque"]');
   await p.waitForSelector('#b-contenus li', { timeout: 8000 }).catch(() => {});
-  verif(await p.locator('#b-jeux li').count() === 4 && (await p.locator('#b-contenus').innerText()).includes('Le carnet relié'), 'la bibliothèque : les quatre jeux, et le contenu acheté');
+  verif(await p.locator('#b-jeux li').count() === 5 && (await p.locator('#b-contenus').innerText()).includes('Le carnet relié'), 'la bibliothèque : les cinq jeux, et le contenu acheté');
   await p.click('[data-p="achats"]');
   verif((await p.locator('#a-liste').innerText()).includes('2,99') && await p.locator('#a-liste a[href="https://exemple.fr/facture/a-1"]').count() === 1, 'les achats : le montant, et le lien de la facture');
   await image(p, 'compte-achats');
@@ -129,7 +129,7 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   console.log('6. La boutique');
   await p.goto(BASE + 'boutique.html');
   await p.waitForSelector('#abos .offre', { timeout: 8000 }).catch(() => {});
-  verif(await p.locator('#abos .offre').count() === 1 && await p.locator('#produits .offre').count() === 6 && !(await p.locator('main').innerText()).includes('Pas encore en vente'), 'le catalogue : une formule, deux contenus, les quatre jeux gratuits ; ce qui n\'est pas actif ne se voit pas');
+  verif(await p.locator('#abos .offre').count() === 1 && await p.locator('#produits .offre').count() === 7 && !(await p.locator('main').innerText()).includes('Pas encore en vente'), 'le catalogue : une formule, deux contenus, les cinq jeux gratuits ; ce qui n\'est pas actif ne se voit pas');
   verif((await p.locator('#abos .offre').innerText()).includes('Gérer mon abonnement') && (await p.locator('#produits .offre').first().innerText()).includes('Dans ta bibliothèque'), 'ce qu\'on a déjà : « gérer », « dans ta bibliothèque », pas « acheter »');
   await image(p, 'boutique');
   await p.click('[data-produit="portefaix-tenues"]');
@@ -187,7 +187,7 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
 
   console.log('9. Avant que la base ne connaisse la boutique (le portail tel qu\'il s\'ouvre aujourd\'hui)');
   p = await ouvrir('boutique.html' + SANS);
-  verif(await dit(p, '#abos', /Aucune formule/) && await dit(p, '#produits', /gratuitement/) && await p.locator('#produits .offre').count() === 4, 'la boutique : rien à vendre, c\'est dit, et les quatre jeux gratuits');
+  verif(await dit(p, '#abos', /Aucune formule/) && await dit(p, '#produits', /gratuitement/) && await p.locator('#produits .offre').count() === 5, 'la boutique : rien à vendre, c\'est dit, et les cinq jeux gratuits');
   await p.goto(BASE + 'compte.html'); await entrer(p, 'cleo@exemple.fr');
   await p.click('[data-p="achats"]');
   verif(await dit(p, '#a-liste', /Aucun achat/), 'les achats : aucun, sans erreur');
@@ -234,12 +234,12 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   verif(manifeste.name === 'StoneValley' && manifeste.display === 'standalone' && manifeste.scope === '/' && icones.length === 4 && icones.every(c => c === 200) && manifeste.icons.some(i => i.purpose === 'maskable')
     && (await p.request.get(BASE + 'images/icones/apple-touch-icon.png')).status() === 200, 'le manifeste : un nom, le plein écran, quatre icônes qui existent (dont une découpable), et celle de l\'iPhone');
   await p.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, { timeout: 10000 }).catch(() => {});
-  await p.waitForFunction(() => caches.open('stonevalley-portail-1').then(c => c.keys()).then(k => k.length >= 20), null, { timeout: 10000 }).catch(() => {});
+  await p.waitForFunction(() => caches.open('stonevalley-portail-2').then(c => c.keys()).then(k => k.length >= 20), null, { timeout: 10000 }).catch(() => {});
   verif(await p.evaluate(() => !!navigator.serviceWorker.controller), 'le service worker est en place et tient la page');
   const passe = await p.evaluate(() => fetch('/stonevalley/quelque-chose.js').then(r => r.status));
-  verif(passe === 404 && await p.evaluate(() => caches.open('stonevalley-portail-1').then(c => c.keys()).then(k => !k.some(r => /stonevalley\/quelque/.test(r.url)))), 'il laisse passer l\'adresse d\'un jeu sans y toucher ni la garder');
+  verif(passe === 404 && await p.evaluate(() => caches.open('stonevalley-portail-2').then(c => c.keys()).then(k => !k.some(r => /stonevalley\/quelque/.test(r.url)))), 'il laisse passer l\'adresse d\'un jeu sans y toucher ni la garder');
   await p.context().setOffline(true);
-  await p.goto(BASE); const horsLigne = await p.locator('#liste-jeux .jeu').count() === 4 && await p.locator('#une h1').innerText() === 'Stone Valley';
+  await p.goto(BASE); const horsLigne = await p.locator('#liste-jeux .jeu').count() === 5 && await p.locator('#une h1').innerText() === 'Stone Valley';
   await p.goto(BASE + 'jeu.html?j=lisiere'); const ficheHorsLigne = await p.locator('h1').innerText() === 'Lisière';
   await p.goto(BASE + 'legal/cgu.html'); const cguHorsLigne = (await p.locator('article h1').innerText()).includes('Conditions');
   await p.context().setOffline(false);

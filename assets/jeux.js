@@ -83,6 +83,27 @@ window.SV_JEUX = [
     couverture: 'images/jeux/braises/nuit.jpg', captures: ['images/jeux/braises/clairiere.jpg', 'images/jeux/braises/capture-1.jpg', 'images/jeux/braises/capture-3.jpg']
   },
   {
+    id: 'neuralarena', genre: 'jeu', nom: 'Neural Arena', teinte: '#c9483d', claire: '#ff8f84',
+    etat: 'Prototype', categorie: 'Arène · Dressage d\'IA', joueurs: '1 joueur, cerveaux partagés', compte: 'Compte facultatif (requis pour publier)',
+    plateformes: 'Navigateur, application installable, clavier et souris ou tactile',
+    lien: 'https://stonevalleyoff-ai.github.io/neuralarena/',
+    accroche: 'Dresse un cerveau. Lâche-le dans l\'arène.',
+    resume: 'Des duels d\'automates au lance-traits, et des cerveaux de neurones que tu dresses toi-même. Ils apprennent sous tes yeux, puis se battent sans toi.',
+    recit: [
+      'Deux à quatre automates, un lance-traits chacun, trois touches et c\'est fini. Tu cours, tu sautes, tu traverses les traits d\'une ruée, dans des arènes dont les bords rebouclent. Tu peux te battre toi-même, ou regarder.',
+      'Mais le vrai jeu est à l\'atelier. Un cerveau naît d\'une couvée, sans rien savoir. Le dresseur en essaie des variantes, les fait toutes combattre, et garde ce qui marche : génération après génération, il apprend à viser, à esquiver, à tenir. Puis tu le publies, et il affronte ceux des autres.'
+    ],
+    forts: [
+      'Un vrai réseau de neurones, dressé dans ton navigateur, que tu regardes penser',
+      'Quatre automates d\'atelier à battre, de Rouille à Zénith',
+      'La ligue : ton cerveau s\'entraîne contre ses anciennes versions et contre ceux des autres',
+      'Un classement de la communauté : affronte un cerveau publié, ou adopte-le',
+      'Quatre arènes, et des aléas : vent, mines, lune, mort subite',
+      'Tes cerveaux te suivent d\'un appareil à l\'autre, et le jeu tourne sans réseau'
+    ],
+    couverture: 'images/jeux/neuralarena/couverture.jpg', captures: ['images/jeux/neuralarena/capture-1.jpg', 'images/jeux/neuralarena/capture-2.jpg', 'images/jeux/neuralarena/capture-3.jpg']
+  },
+  {
     id: 'orvane', genre: 'monde', nom: 'Orvane', teinte: '#3f7f8c', claire: '#8fc9d4',
     etat: 'Le monde', categorie: 'Le monde partagé', joueurs: 'Tous les joueurs', compte: 'Sans compte',
     plateformes: 'Navigateur',
