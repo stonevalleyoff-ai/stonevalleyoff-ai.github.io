@@ -23,6 +23,8 @@ function creer(options) {
   const dans = jours => new Date(Date.now() + jours * 864e5).toISOString();
   const achats = { 'u-ada': [{ id: 'a-1', produit: 'lisiere-carnet', etat: 'paye', montant_centimes: 299, devise: 'EUR', paye_le: dans(-12), cree_le: dans(-12), facture_url: 'https://exemple.fr/facture/a-1' }] };
   const abonnements = { 'u-ada': { produit: 'soutien-mensuel', etat: 'actif', debut: dans(-40), periode_fin: dans(20), resilie_le: null } };
+  const lisiere = { 'u-ada': { en_cours: { resume: { nom: 'Le monde d\'Orvane', lieu: 'Prairie', jour: 3, nuits: 2, saison: 'été', regions: 5, biomes: 2 },
+    maj_le: new Date(Date.now() - 2 * 3600e3).toISOString() }, meilleur: 4, rang: 2, parties: 6, dernieres: [] } };
   const paiements = [];            // ce qui a été demandé à la fonction de paiement : { uid, action, produit }
   const supprimes = [];            // les comptes effacés
   const produit = id => PRODUITS.find(p => p.id === id);
@@ -105,6 +107,11 @@ function creer(options) {
     vp_supprimer_compte(uid, p, email) { supprimes.push(email); delete COMPTES[email]; return { ok: true }; },
     vp_charger_compte() { return { donnees: { sac: {} }, rev: 3 }; },
     lisiere_moi() { return { pseudo: null, parties: 0 }; },
+    // (Lisière : sa partie gardée sur le compte et son record ; Ada a une partie en cours, gardée il y a deux heures)
+    lisiere_avancee(uid) {
+      const a = lisiere[uid];
+      return a ? Object.assign({ ok: true }, a) : { ok: true, en_cours: null, meilleur: null, rang: null, parties: 0, dernieres: [] };
+    },
   };
   function payer(uid, j) {
     paiements.push({ uid, action: j.action, produit: j.produit || null });
@@ -175,7 +182,7 @@ function creer(options) {
       rendre(404, {});
     });
   });
-  return { serveur, salons, journal, comptes: COMPTES, courrier, achats, abonnements, paiements, supprimes };
+  return { serveur, salons, journal, comptes: COMPTES, courrier, achats, abonnements, paiements, supprimes, lisiere };
 }
 
 module.exports = { creer };

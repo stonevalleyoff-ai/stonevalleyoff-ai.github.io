@@ -244,6 +244,10 @@ label.case input { width: 1.2rem; height: 1.2rem; margin-top: 0.15rem; flex: non
 .liste .quoi strong { display: block; font-size: 1.1rem; }
 .liste .quoi span { color: var(--pale); font-size: 0.95rem; }
 .liste .combien { font-weight: 700; white-space: nowrap; }
+/* où l'on en est dans un jeu (la partie en cours, le record) : sous son nom, un trait de sa couleur */
+.avancee { margin: 0.45rem 0 0; padding-left: 0.7rem; border-left: 3px solid var(--teinte, var(--trait)); font-size: 0.95rem; line-height: 1.45; }
+.encart .avancee { margin: 0; }
+.encart .avancee strong { display: block; margin-bottom: 0.2rem; }
 .vide { color: var(--pale); border: 1px dashed var(--trait-2); border-radius: 10px; padding: 1.4rem; text-align: center; }
 
 /* --- la boutique --- */

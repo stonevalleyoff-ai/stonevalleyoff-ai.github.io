@@ -12,6 +12,7 @@
   var U = null;            // le compte, tel que le service le rend
   var voulu = null;        // l'onglet de la porte qu'un lien expiré demande
   var ESPACE = null;       // { achats, abonnement, ferme } : ce que la boutique sait de ce compte
+  var AVANCEE = {};        // l'identifiant d'un jeu → où l'on en est (SV.avancee : la partie en cours, le record)
   function bandeau(titre, texte) { $('lien-titre').textContent = titre; $('lien-texte').textContent = texte; $('lien').hidden = false; $('lien').scrollIntoView({ block: 'start' }); }
 
   // ---------- où l'on est ----------
@@ -132,9 +133,13 @@
   }
   var charge = null;
   function charger() {               // (une fois par connexion : le compte, puis ce que la boutique en sait)
-    if (!SV.session()) { U = null; ESPACE = null; charge = null; return; }
+    if (!SV.session()) { U = null; ESPACE = null; AVANCEE = {}; charge = null; return; }
     if (charge === SV.session().uid) return;
     charge = SV.session().uid;
+    AVANCEE = {};
+    window.SV_JEUX.forEach(function (j) {
+      SV.avancee(j.id).then(function (a) { if (a && SV.session() && charge === SV.session().uid) { AVANCEE[j.id] = a; remplir(); } });
+    });
     SV.avecJeton('GET', '/auth/v1/user').then(function (r) { if (r.code === 200 && r.json) { U = r.json; SV.majUtilisateur(U); } });
     SV.rpc('sv_mon_espace').then(function (r) {
       ESPACE = r.code === 200 && r.json ? { achats: r.json.achats || [], abonnement: r.json.abonnement || null, ferme: false } : { achats: [], abonnement: null, ferme: r.code === 404 };
@@ -187,8 +192,10 @@
   function bibliotheque() {
     var jeux = window.SV_JEUX.filter(function (j) { return j.genre === 'jeu'; });
     $('b-jeux').innerHTML = jeux.map(function (j) {
-      return '<li><img class="vignette" src="' + h(j.couverture) + '" alt="" loading="lazy"><div class="quoi"><strong>' + h(j.nom) + '</strong><span>' + h(j.categorie) + ' · ' + (possede(j.id) ? 'Acheté' : 'Gratuit') + '</span></div>'
-        + '<a class="bouton calme petit" href="jeu.html?j=' + j.id + '">La fiche</a><a class="bouton petit" href="' + h(j.lien) + '">Jouer</a></li>';
+      var a = AVANCEE[j.id];       // (où l'on en est : la partie en cours, gardée sur le compte, et le record)
+      return '<li data-jeu="' + h(j.id) + '" style="--teinte:' + h(j.teinte) + '"><img class="vignette" src="' + h(j.couverture) + '" alt="" loading="lazy"><div class="quoi"><strong>' + h(j.nom) + '</strong><span>' + h(j.categorie) + ' · ' + (possede(j.id) ? 'Acheté' : 'Gratuit') + '</span>'
+        + (a ? '<p class="avancee">' + a.lignes.map(h).join('<br>') + '</p>' : '') + '</div>'
+        + '<a class="bouton calme petit" href="jeu.html?j=' + j.id + '">La fiche</a><a class="bouton petit" href="' + h(j.lien) + '">' + (a && a.encours ? 'Reprendre' : 'Jouer') + '</a></li>';
     }).join('');
     var contenus = ESPACE ? ESPACE.achats.filter(function (a) { return a.etat === 'paye' && a.genre !== 'abonnement'; }) : [];
     $('b-contenus-carte').hidden = !contenus.length;

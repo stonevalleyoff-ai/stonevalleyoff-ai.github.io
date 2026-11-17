@@ -49,7 +49,7 @@
     + '<h2>Ce qui t\'attend</h2><ul class="forts">' + j.forts.map(function (f) { return '<li>' + h(f) + '</li>'; }).join('') + '</ul>'
     + (j.captures.length ? '<h2>En images</h2><ul class="captures">' + j.captures.map(function (c, i) { return '<li><button type="button" data-image="' + h(c) + '" aria-label="Voir l\'image ' + (i + 1) + ' en grand"><img src="' + h(c) + '" alt="' + h(j.nom) + ', image ' + (i + 1) + '" loading="lazy"></button></li>'; }).join('') + '</ul>' : '')
     + '</div>'
-    + '<aside class="encart"><a class="bouton grand" href="' + h(vers) + '">' + h(jouer) + '</a>'
+    + '<aside class="encart"><a class="bouton grand" id="encart-jouer" href="' + h(vers) + '">' + h(jouer) + '</a><p class="avancee" id="avancee" hidden></p>'
     + '<dl><dt>Prix</dt><dd>' + (j.genre === 'jeu' ? 'Gratuit' : 'Libre d\'accès') + '</dd><dt>État</dt><dd>' + h(j.etat) + '</dd><dt>Genre</dt><dd>' + h(j.categorie) + '</dd><dt>Joueurs</dt><dd>' + h(j.joueurs) + '</dd><dt>Compte</dt><dd>' + h(j.compte) + '</dd><dt>Où jouer</dt><dd>' + h(j.plateformes) + '</dd><dt>Langue</dt><dd>Français</dd></dl>'
     + (j.genre === 'jeu' ? '<p class="aide">Rien à télécharger : le jeu s\'ouvre dans ton navigateur. Pour l\'installer, ouvre le menu de ton navigateur, puis « Installer l\'application » ou « Sur l\'écran d\'accueil ».</p>' : '')
     + '</aside></div></div></section>'
@@ -57,6 +57,17 @@
       return '<li><article class="jeu" style="--teinte:' + a.teinte + ';--teinte-claire:' + a.claire + '"><div class="image"><img src="' + h(a.couverture) + '" alt="" loading="lazy" onerror="this.remove()"></div>'
         + '<div class="corps"><span class="genre">' + h(a.categorie) + '</span><h3><a href="jeu.html?j=' + a.id + '">' + h(a.nom) + '</a></h3><p>' + h(a.accroche) + '</p></div></article></li>';
     }).join('') + '</ul></div></section>';
+  // (connecté : où l'on en est dans ce jeu, sous son bouton ; une partie en cours se reprend)
+  function avancee() {
+    SV.avancee(j.id).then(function (a) {
+      var p = $('avancee');
+      p.hidden = !a;
+      if (!a) { $('encart-jouer').textContent = jouer; return; }
+      p.innerHTML = '<strong>Où tu en es</strong>' + a.lignes.map(h).join('<br>');
+      if (a.encours) $('encart-jouer').textContent = 'Reprendre ta partie';
+    });
+  }
+  SV.quand(avancee); avancee();
   // (une image en grand : un clic l'ouvre, un clic ou Échap la ferme)
   var v = $('visionneuse');
   $('contenu').addEventListener('click', function (e) { var b = e.target.closest('[data-image]'); if (!b) return; $('visionneuse-image').src = b.getAttribute('data-image'); v.showModal(); });

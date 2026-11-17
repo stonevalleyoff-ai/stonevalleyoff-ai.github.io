@@ -241,6 +241,39 @@
   window.addEventListener('appinstalled', function () { invite = null; var b = $('installer'); if (b) b.hidden = true; });
   document.addEventListener('click', function (e) { if (e.target.id === 'installer' && invite) { invite.prompt(); invite = null; e.target.hidden = true; } });
 
+  // ---------- où l'on en est dans un jeu (le compte connecté) ----------
+  // Aujourd'hui Lisière : sa partie en cours, gardée sur le compte (la fonction lisiere_avancee, dans le dépôt de Lisière :
+  // outils/sauvegarde.sql), et son record au tableau des scores. Rend une promesse : null (rien à dire, pas connecté, la base ne
+  // répond pas), ou { encours, lignes : [texte…] }.
+  function ilYa(d) {
+    var s = (Date.now() - new Date(d).getTime()) / 1000;
+    if (!(s >= 0)) return '';
+    var f = new Intl.RelativeTimeFormat('fr', { numeric: 'auto' });
+    if (s < 60) return 'à l\'instant';
+    if (s < 3600) return f.format(-Math.round(s / 60), 'minute');
+    if (s < 86400) return f.format(-Math.round(s / 3600), 'hour');
+    return f.format(-Math.round(s / 86400), 'day');
+  }
+  function pluriel(n, mot) { return n + ' ' + mot + (n > 1 ? 's' : ''); }
+  var AVANCEES = {
+    lisiere: function () {
+      return avecJeton('POST', '/rest/v1/rpc/lisiere_avancee', {}).then(function (r) {
+        if (r.code !== 200 || !r.json || r.json.ok === false) return null;
+        var a = r.json, c = a.en_cours && a.en_cours.resume, lignes = [];
+        if (c) {
+          var ou = [c.lieu && c.lieu !== c.nom ? c.lieu : '', c.saison || ''].filter(Boolean).join(', ');
+          lignes.push('Partie en cours : ' + [(c.nom || 'Lisière') + ', jour ' + (c.jour || 1), pluriel(c.nuits || 0, 'nuit') + ' tenue' + ((c.nuits || 0) > 1 ? 's' : ''),
+            ou, c.regions ? pluriel(c.regions, 'région') + ' découverte' + (c.regions > 1 ? 's' : '') : ''].filter(Boolean).join(' · ') + ' — gardée ' + ilYa(a.en_cours.maj_le) + '.');
+        }
+        if (a.meilleur !== null && a.meilleur !== undefined)
+          lignes.push('Ton record : ' + pluriel(a.meilleur, 'nuit') + ' tenue' + (a.meilleur > 1 ? 's' : '') + (a.rang ? ' (' + (a.rang === 1 ? '1er' : a.rang + 'e') + ' au tableau des scores)' : '')
+            + ' · ' + pluriel(a.parties || 0, 'partie') + ' finie' + ((a.parties || 0) > 1 ? 's' : '') + '.');
+        return lignes.length ? { encours: !!c, lignes: lignes } : null;
+      }, function () { return null; });
+    }
+  };
+  function avancee(id) { return S && AVANCEES[id] ? AVANCEES[id]() : Promise.resolve(null); }
+
   lire();
   window.addEventListener('storage', function (e) { if (e.key === STOCKAGE || e.key === null) { lire(); change(); } });
   window.SV = { RACINE: RACINE, MDP_MIN: MDP_MIN, CGU_VERSION: CGU_VERSION, $: $, h: h, lien: lien,
@@ -248,7 +281,7 @@
     appel: appel, avecJeton: avecJeton, jeton: jeton, prendre: prendre, majUtilisateur: majUtilisateur, oublier: oublier, connecter: connecter, quitter: quitter,
     rpc: function (n, p) { return avecJeton('POST', '/rest/v1/rpc/' + n, p || {}); },
     fonction: function (n, c) { return avecJeton('POST', '/functions/v1/' + n, c || {}); },
-    dire: dire, paiement: paiement, LOCAL: LOCAL, adresse: adresse, pseudoPropre: pseudoPropre, euros: euros, jour: jour, avis: avis, soumettre: soumettre,
+    dire: dire, paiement: paiement, LOCAL: LOCAL, adresse: adresse, pseudoPropre: pseudoPropre, euros: euros, jour: jour, avis: avis, soumettre: soumettre, avancee: avancee,
     jeu: function (id) { return (window.SV_JEUX || []).filter(function (j) { return j.id === id; })[0] || null; } };
   entete(); pied(); editeur();
 })();

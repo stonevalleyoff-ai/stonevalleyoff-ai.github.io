@@ -45,6 +45,7 @@ Le même que dans les jeux : les comptes du projet Supabase « Vallée de pierre
 - **Créer un compte** demande d'accepter les conditions et de dire qu'on a 15 ans (ou l'accord d'un parent). La version acceptée et sa date sont gardées avec le compte (`cgu`, `cgu_le`, à côté du `pseudo`).
 - **L'arrivée par le lien d'un e-mail** (confirmation, nouveau mot de passe, changement d'adresse, lien expiré) : le lien ramène à l'accueil, qui passe la main à `compte.html`. Le jeton est lu puis effacé de l'adresse aussitôt.
 - **Changer de mot de passe** et **supprimer son compte** redemandent le mot de passe.
+- **Où l'on en est dans un jeu** (`SV.avancee`, dans `assets/site.js`) : connecté, la bibliothèque du compte et la fiche du jeu le montrent, sous son nom. Aujourd'hui Lisière : sa partie en cours, gardée sur le compte (la fonction `lisiere_avancee`, écrite dans le dépôt de Lisière, `outils/sauvegarde.sql`), et son record au tableau des scores ; une partie en cours fait dire « Reprendre » au bouton. Un jeu qui garde sa progression sur le compte s'ajoute à `AVANCEES`.
 - **Télécharger ses données** et **supprimer son compte** marchent dès aujourd'hui, avec les fonctions que les jeux ont déjà (`vp_charger_compte`, `lisiere_moi`, `vp_supprimer_compte`). Une fois `supabase.sql` passé, ce sont `sv_mes_donnees` (tout, jeu par jeu) et `sv_compte_supprimer` (qui refuse tant qu'un abonnement est encore prélevé) qui servent.
 
 ## La boutique
@@ -90,7 +91,7 @@ Dans `assets/jeux.js`, copier une entrée et changer ses textes, ses couleurs (`
 node outils/essai.js [dossier où poser des images]
 ```
 
-Dans Chromium (il lui faut Playwright), contre un faux service de comptes local (`outils/faux-service.js`) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun paiement n'a lieu. 72 vérifications : l'accueil et les fiches, créer un compte, les liens des e-mails, le profil, la sécurité, la bibliothèque, les achats, l'abonnement (résilier, reprendre), la boutique et sa caisse, télécharger ses données, supprimer son compte, la session commune aux jeux, le portail tel qu'il est avant que la base ne connaisse la boutique, les textes légaux et leurs liens, un téléphone, l'application installable (manifeste, service worker, ouverture sans réseau).
+Dans Chromium (il lui faut Playwright), contre un faux service de comptes local (`outils/faux-service.js`) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun paiement n'a lieu. 75 vérifications : l'accueil et les fiches, créer un compte, les liens des e-mails, le profil, la sécurité, la bibliothèque (et où l'on en est dans Lisière), les achats, l'abonnement (résilier, reprendre), la boutique et sa caisse, télécharger ses données, supprimer son compte, la session commune aux jeux, le portail tel qu'il est avant que la base ne connaisse la boutique, les textes légaux et leurs liens, un téléphone, l'application installable (manifeste, service worker, ouverture sans réseau).
 
 Pour voir le site sur sa machine avec le faux service (comptes `ada@exemple.fr`, `bob@exemple.fr`… mot de passe `bon`) : `node outils/faux-service.js 8136`, servir ce dossier (`python3 -m http.server 8137`), puis ouvrir `http://127.0.0.1:8137/?service=http://127.0.0.1:8136`. Sur sa propre machine seulement, la page accepte un autre service de comptes dans son adresse : c'est ce dont l'essai se sert.
 
