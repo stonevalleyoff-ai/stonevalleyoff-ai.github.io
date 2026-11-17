@@ -110,6 +110,18 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   await p.click('[data-p="bibliotheque"]');
   await p.waitForSelector('#b-contenus li', { timeout: 8000 }).catch(() => {});
   verif(await p.locator('#b-jeux li').count() === 5 && (await p.locator('#b-contenus').innerText()).includes('Le carnet relié'), 'la bibliothèque : les cinq jeux, et le contenu acheté');
+  await p.waitForSelector('#b-jeux li[data-jeu="lisiere"] .avancee', { timeout: 8000 }).catch(() => {});
+  const avLisiere = await p.locator('#b-jeux li[data-jeu="lisiere"] .avancee').innerText().catch(() => '');
+  verif(/Partie en cours : Le monde d.Orvane, jour 3 · 2 nuits tenues · Prairie, été · 5 régions découvertes — gardée il y a 2 heures\./.test(avLisiere) && /Ton record : 4 nuits tenues \(2e au tableau des scores\) · 6 parties finies\./.test(avLisiere)
+    && await p.locator('#b-jeux li[data-jeu="lisiere"] a.bouton:not(.calme)').innerText() === 'Reprendre' && await p.locator('#b-jeux li[data-jeu="stonevalley"] .avancee').count() === 0,
+    'Lisière dans la bibliothèque : la partie en cours gardée sur le compte, le record ; son bouton dit « Reprendre »');
+  await image(p, 'compte-bibliotheque');
+  await p.goto(BASE + 'jeu.html?j=lisiere');
+  await p.waitForSelector('#avancee:not([hidden])', { timeout: 8000 }).catch(() => {});
+  verif((await p.locator('#avancee').innerText()).includes('Où tu en es') && (await p.locator('#avancee').innerText()).includes('jour 3') && await p.locator('#encart-jouer').innerText() === 'Reprendre ta partie',
+    'la fiche de Lisière, connecté : où l\'on en est, sous le bouton, qui dit « Reprendre ta partie »');
+  await image(p, 'fiche-avancee');
+  await p.goto(BASE + 'compte.html#bibliotheque');
   await p.click('[data-p="achats"]');
   verif((await p.locator('#a-liste').innerText()).includes('2,99') && await p.locator('#a-liste a[href="https://exemple.fr/facture/a-1"]').count() === 1, 'les achats : le montant, et le lien de la facture');
   await image(p, 'compte-achats');
@@ -189,6 +201,9 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   p = await ouvrir('boutique.html' + SANS);
   verif(await dit(p, '#abos', /Aucune formule/) && await dit(p, '#produits', /gratuitement/) && await p.locator('#produits .offre').count() === 5, 'la boutique : rien à vendre, c\'est dit, et les cinq jeux gratuits');
   await p.goto(BASE + 'compte.html'); await entrer(p, 'cleo@exemple.fr');
+  await p.click('[data-p="bibliotheque"]'); await p.waitForTimeout(400);
+  verif(await p.locator('#b-jeux .avancee').count() === 0 && await p.locator('#b-jeux li[data-jeu="lisiere"] a.bouton:not(.calme)').innerText() === 'Jouer',
+    'un compte sans partie de Lisière : rien sous son nom, et « Jouer »');
   await p.click('[data-p="achats"]');
   verif(await dit(p, '#a-liste', /Aucun achat/), 'les achats : aucun, sans erreur');
   await p.click('#a-gerer');

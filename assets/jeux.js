@@ -31,7 +31,7 @@ window.SV_JEUX = [
     accroche: 'Tenir jusqu\'au matin.',
     resume: 'Une veilleuse au bord d\'un feu, et autour, le noir qui regarde. Les bêtes sont vraies, et elles se souviennent.',
     recit: [
-      'Tu t\'éveilles à la lisière d\'un lieu vrai du monde d\'Orvane : une forêt, une prairie, une lande. Le jour, tu récoltes, tu fabriques, tu chasses. La nuit, tu tiens près de ton feu, et les chasseurs du lieu viennent tourner au bord de la lumière.',
+      'Tu t\'éveilles dans le monde d\'Orvane, d\'un seul tenant : une prairie d\'abord, puis tous ses biomes, à pied. Le jour, tu récoltes, tu fabriques, tu chasses. La nuit, tu tiens près de ton feu, et les chasseurs du lieu viennent tourner au bord de la lumière.',
       'Chaque bête est une lignée vraie du monde, dessinée à l\'encre. Ce que les joueurs leur font, elles l\'apprennent : le monde s\'en souvient, tous jeux confondus.'
     ],
     forts: [
@@ -39,7 +39,8 @@ window.SV_JEUX = [
       'La faim, la peur, le froid : tout cela tue, et tout prévient avant',
       'La pluie, la boue, la crue, la foudre, l\'incendie : le temps pèse',
       'Un bestiaire à l\'encre, tiré des lignées vivantes d\'Orvane',
-      'Un tableau des scores : combien de nuits tiendras-tu ?'
+      'Un tableau des scores : combien de nuits tiendras-tu ?',
+      'Connecté, ta partie te suit d\'un appareil à l\'autre, et ton compte montre où tu en es'
     ],
     couverture: 'images/jeux/lisiere/couverture.jpg', captures: ['images/jeux/lisiere/capture-1.jpg', 'images/jeux/lisiere/capture-2.jpg', 'images/jeux/lisiere/capture-3.jpg']
   },

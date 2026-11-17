@@ -101,7 +101,8 @@ begin
       'journal_de_jeu', (select coalesce(jsonb_agg(to_jsonb(j) - 'utilisateur' order by j.cree_le), '[]'::jsonb) from public.vp_journal j where j.utilisateur = moi)),
     'lisiere', jsonb_build_object(
       'joueur', (select to_jsonb(l) - 'utilisateur' from public.lisiere_joueurs l where l.utilisateur = moi),
-      'parties', (select coalesce(jsonb_agg(to_jsonb(l) - 'utilisateur' order by l.debut), '[]'::jsonb) from public.lisiere_parties l where l.utilisateur = moi)),
+      'parties', (select coalesce(jsonb_agg(to_jsonb(l) - 'utilisateur' order by l.debut), '[]'::jsonb) from public.lisiere_parties l where l.utilisateur = moi),
+      'partie_en_cours', (select to_jsonb(g) - 'utilisateur' from public.lisiere_sauvegardes g where g.utilisateur = moi)),
     'portefaix', jsonb_build_object(
       'salons', (select coalesce(jsonb_agg(to_jsonb(m) - 'utilisateur'), '[]'::jsonb) from public.pf_membres m where m.utilisateur = moi)),
     'neural_arena', jsonb_build_object(
