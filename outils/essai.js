@@ -2,7 +2,7 @@
 // Dans Chromium, contre un faux service de comptes (outils/faux-service.js) : aucun vrai e-mail ne part, aucun compte n'est créé, aucun
 // paiement n'a lieu. L'accueil et les fiches ; la porte du compte ; l'espace (profil, sécurité, bibliothèque, achats, abonnement,
 // données) ; la boutique ; l'arrivée par le lien d'un e-mail ; les textes légaux ; le portail quand la base ne connaît pas encore la
-// boutique ; un téléphone ; l'application installable (le manifeste, le service worker, sans réseau).
+// boutique ; un téléphone ; l'application installable (le manifeste, le service worker, sans réseau, la mise à jour).
 //   node outils/essai.js [dossier où poser des images]
 // Il faut Playwright et son Chromium (ou NAVIGATEUR=chrome, pour le Chrome de la machine). Il sort avec le code 0 si tout passe.
 'use strict';
@@ -16,11 +16,13 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   const service = creer(), nu = creer({ boutique: false, paiement: false });
   await new Promise(f => service.serveur.listen(8136, '127.0.0.1', f));
   await new Promise(f => nu.serveur.listen(8138, '127.0.0.1', f));
+  // (comme GitHub Pages : chaque fichier porte la date de la dernière publication ; l'essai en fait une nouvelle en la changeant)
+  let publie = new Date(Math.floor(Date.now() / 1000) * 1000 - 3600e3);
   const srv = http.createServer((req, res) => {
     let p = decodeURIComponent(req.url.split('?')[0]); if (p.endsWith('/')) p += 'index.html';
     const f = path.join(SITE, path.normalize(p));
     if (!f.startsWith(SITE) || !fs.existsSync(f)) { res.writeHead(404, { 'Content-Type': TYPES['.html'] }); return res.end(fs.readFileSync(path.join(SITE, '404.html'))); }
-    res.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'application/octet-stream' }); res.end(fs.readFileSync(f));
+    res.writeHead(200, { 'Content-Type': TYPES[path.extname(f)] || 'application/octet-stream', 'Last-Modified': publie.toUTCString() }); res.end(fs.readFileSync(f));
   });
   await new Promise(f => srv.listen(8137, '127.0.0.1', f));
   const BASE = 'http://127.0.0.1:8137/', AVEC = '?service=http://127.0.0.1:8136', SANS = '?service=http://127.0.0.1:8138';
@@ -249,16 +251,42 @@ const verif = (c, m) => { n++; ok = ok && !!c; console.log((c ? '  ✓ ' : '  �
   verif(manifeste.name === 'StoneValley' && manifeste.display === 'standalone' && manifeste.scope === '/' && icones.length === 4 && icones.every(c => c === 200) && manifeste.icons.some(i => i.purpose === 'maskable')
     && (await p.request.get(BASE + 'images/icones/apple-touch-icon.png')).status() === 200, 'le manifeste : un nom, le plein écran, quatre icônes qui existent (dont une découpable), et celle de l\'iPhone');
   await p.waitForFunction(() => navigator.serviceWorker && navigator.serviceWorker.controller, null, { timeout: 10000 }).catch(() => {});
-  await p.waitForFunction(() => caches.open('stonevalley-portail-2').then(c => c.keys()).then(k => k.length >= 20), null, { timeout: 10000 }).catch(() => {});
+  await p.waitForFunction(() => caches.open('stonevalley-portail-3').then(c => c.keys()).then(k => k.length >= 20), null, { timeout: 10000 }).catch(() => {});
   verif(await p.evaluate(() => !!navigator.serviceWorker.controller), 'le service worker est en place et tient la page');
   const passe = await p.evaluate(() => fetch('/stonevalley/quelque-chose.js').then(r => r.status));
-  verif(passe === 404 && await p.evaluate(() => caches.open('stonevalley-portail-2').then(c => c.keys()).then(k => !k.some(r => /stonevalley\/quelque/.test(r.url)))), 'il laisse passer l\'adresse d\'un jeu sans y toucher ni la garder');
+  verif(passe === 404 && await p.evaluate(() => caches.open('stonevalley-portail-3').then(c => c.keys()).then(k => !k.some(r => /stonevalley\/quelque/.test(r.url)))), 'il laisse passer l\'adresse d\'un jeu sans y toucher ni la garder');
   await p.context().setOffline(true);
   await p.goto(BASE); const horsLigne = await p.locator('#liste-jeux .jeu').count() === 5 && await p.locator('#une h1').innerText() === 'Stone Valley';
   await p.goto(BASE + 'jeu.html?j=lisiere'); const ficheHorsLigne = await p.locator('h1').innerText() === 'Lisière';
   await p.goto(BASE + 'legal/cgu.html'); const cguHorsLigne = (await p.locator('article h1').innerText()).includes('Conditions');
   await p.context().setOffline(false);
   verif(horsLigne && ficheHorsLigne && cguHorsLigne, 'sans réseau : l\'accueil, une fiche et les conditions s\'ouvrent encore');
+
+  // une publication nouvelle : la page revenue au premier plan (l'application installée qu'on rouvre) se recharge d'elle-même ;
+  // si l'on était en train d'écrire, elle le propose
+  await p.goto(BASE + AVEC); await p.waitForLoadState('networkidle');
+  const datee = await p.evaluate(() => window.SV_MAJ.publiee) === publie.getTime();
+  await p.evaluate(() => { window.vieille = true; document.dispatchEvent(new Event('visibilitychange')); });
+  await p.waitForTimeout(600);
+  const pareille = await p.evaluate(() => window.vieille === true);
+  await p.reload(); await p.waitForLoadState('networkidle');
+  await p.evaluate(() => { window.vieille = true; });
+  publie = new Date(publie.getTime() + 60000);
+  let charge = p.waitForEvent('load', { timeout: 8000 }).then(() => true, () => false);
+  await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  const rechargee = await charge && await p.evaluate(() => !window.vieille && window.SV_MAJ.publiee) === publie.getTime() && await p.locator('#liste-jeux .jeu').count() === 5;
+  verif(datee && pareille && rechargee, 'une publication nouvelle : revenue au premier plan, la page se recharge d\'elle-même sur elle (rien de neuf : elle ne bouge pas)');
+  await p.goto(BASE + 'compte.html' + AVEC); await p.waitForLoadState('networkidle');
+  await p.fill('#c-email', 'quelqu@exemple.fr');
+  await p.evaluate(() => { window.vieille = true; });
+  publie = new Date(publie.getTime() + 60000);
+  await p.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+  const propose = await p.waitForSelector('#maj-portail:not([hidden])', { timeout: 8000 }).then(() => true, () => false);
+  const garde = await p.evaluate(() => window.vieille === true) && await p.inputValue('#c-email') === 'quelqu@exemple.fr';
+  await image(p, 'mise-a-jour');
+  charge = p.waitForEvent('load', { timeout: 8000 }).then(() => true, () => false);
+  await p.click('#maj-portail button');
+  verif(propose && garde && await charge, 'en train d\'écrire (une adresse dans la connexion) : la page ne se recharge pas, elle propose « Recharger », et le fait au clic');
 
   verif(erreurs.length === 0, 'aucune erreur de script' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); srv.close(); service.serveur.close(); nu.serveur.close();
