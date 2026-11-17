@@ -241,6 +241,49 @@
   window.addEventListener('appinstalled', function () { invite = null; var b = $('installer'); if (b) b.hidden = true; });
   document.addEventListener('click', function (e) { if (e.target.id === 'installer' && invite) { invite.prompt(); invite = null; e.target.hidden = true; } });
 
+  // ---------- la mise à jour : surtout l'application installée ----------
+  // Installée, l'application ne se recharge pas d'elle-même : sur un téléphone, on la retrouve telle qu'on l'a laissée, parfois des
+  // jours plus tôt, et elle n'a pas de bouton pour recharger. Or chaque publication du site date tous ses fichiers du même instant
+  // (l'en-tête Last-Modified de GitHub Pages). Quand la page revient au premier plan (et toutes les quinze minutes qu'elle reste
+  // ouverte), on demande cette date au site : plus récente que celle de la page, une version nouvelle est en ligne. Revenue au
+  // premier plan, la page se recharge aussitôt, et le service worker lui sert la nouvelle (sw.js : le réseau d'abord, toujours
+  // revalidé). Si l'on était en train d'écrire dans un champ, ou si elle est restée ouverte sous les yeux, elle le propose au lieu
+  // de le faire. Le service worker, lui, se cherche une version nouvelle en même temps.
+  var PUBLIEE = Date.parse(document.lastModified) || 0, demandee = 0, rechargee = false;
+  function recharger() { if (!rechargee) { rechargee = true; location.reload(); } }
+  function occupe() {
+    var champs = document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]), textarea');
+    return Array.prototype.some.call(champs, function (c) { return c.value && c.value !== c.defaultValue; });
+  }
+  function proposer() {
+    var b = $('maj-portail');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'maj-portail';
+      b.className = 'maj-portail';
+      b.setAttribute('role', 'status');
+      b.innerHTML = '<span>Une nouvelle version du portail est en ligne.</span><button type="button" class="bouton petit">Recharger</button>';
+      b.querySelector('button').addEventListener('click', recharger);
+      document.body.appendChild(b);
+    }
+    b.hidden = false;
+  }
+  function verifier(auRetour) {
+    var t = Date.now();
+    if (!PUBLIEE || rechargee || t - demandee < 30000) return;
+    demandee = t;
+    fetch(lien('sw.js'), { method: 'HEAD', cache: 'no-store' }).then(function (r) {
+      var d = Date.parse(r.headers.get('Last-Modified') || '');
+      if (!r.ok || !(d - PUBLIEE >= 1000)) return;
+      if (auRetour && !occupe()) recharger(); else proposer();
+    }).catch(function () { /* sans réseau : la prochaine fois */ });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistration(RACINE).then(function (g) { if (g) g.update().catch(function () {}); }).catch(function () {});
+  }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') verifier(true); });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) verifier(true); });
+  setInterval(function () { if (document.visibilityState === 'visible') verifier(false); }, 15 * 60000);
+  window.SV_MAJ = { verifier: verifier, publiee: PUBLIEE };
+
   // ---------- où l'on en est dans un jeu (le compte connecté) ----------
   // Aujourd'hui Lisière : sa partie en cours, gardée sur le compte (la fonction lisiere_avancee, dans le dépôt de Lisière :
   // outils/sauvegarde.sql), et son record au tableau des scores. Rend une promesse : null (rien à dire, pas connecté, la base ne

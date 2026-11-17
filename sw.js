@@ -3,10 +3,12 @@
 // Il est à la racine du site, donc il voit passer aussi les adresses des jeux (/stonevalley/, /Lisiere/…) : il n'y touche pas. Il ne
 // répond que pour les fichiers du portail (DU_PORTAIL) ; tout le reste part au réseau comme s'il n'était pas là. Les jeux qui ont leur
 // propre service worker gardent le leur. Rien du service de comptes n'est gardé : il est sur un autre site.
-// Les pages, les scripts et les styles : le réseau d'abord (une nouvelle version se voit tout de suite), la copie gardée sinon.
+// Les pages, les scripts et les styles : le réseau d'abord, toujours revalidé auprès du site (sans cela, le navigateur pouvait servir
+// sa propre copie, vieille de dix minutes au plus : une version nouvelle ne se voyait pas, ou à moitié), la copie gardée sinon.
 // Les images et les polices : la copie gardée d'abord, rafraîchie en arrière-plan.
+// La page, elle, se recharge quand une version nouvelle est publiée et qu'on revient à l'application (assets/site.js, la mise à jour).
 'use strict';
-const CACHE = 'stonevalley-portail-2';
+const CACHE = 'stonevalley-portail-3';
 const SOCLE = ['./', 'jeu.html', 'compte.html', 'boutique.html', '404.html', 'manifest.webmanifest',
   'assets/site.css', 'assets/site.js', 'assets/jeux.js', 'assets/editeur.js', 'assets/compte.js',
   'assets/polices/AlegreyaSans-Regular.woff2', 'assets/polices/AlegreyaSans-Medium.woff2', 'assets/polices/AlegreyaSans-Bold.woff2',
@@ -33,5 +35,6 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.match(r).then(x => { const frais = fetch(r).then(garder).catch(() => x); return x || frais; }));
     return;
   }
-  e.respondWith(fetch(r).then(garder).catch(() => gardee().then(x => x || (r.mode === 'navigate' ? caches.match('./') : Response.error()))));
+  // (« no-cache » : le navigateur redemande au site si sa copie vaut encore ; s'il n'a rien de neuf, la réponse est courte)
+  e.respondWith(fetch(r, { cache: 'no-cache' }).then(garder).catch(() => gardee().then(x => x || (r.mode === 'navigate' ? caches.match('./') : Response.error()))));
 });
